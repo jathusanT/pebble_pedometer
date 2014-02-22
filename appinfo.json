@@ -7,7 +7,7 @@
     "capabilities": [
         ""
     ],
-    "shortName": "Pedometer",
+    "shortName": "Pedometer+",
     "companyName": "Jathusan",
     "watchapp": {
         "watchface": false
