@@ -1,0 +1,35 @@
+{
+    "versionLabel": "1.0",
+    "uuid": "07d87811-510f-48f2-b723-6bcfc4db9a40",
+    "appKeys": {},
+    "longName": "Pedometer+ for Pebble",
+    "versionCode": 1,
+    "capabilities": [
+        ""
+    ],
+    "shortName": "Pedometer",
+    "companyName": "Jathusan",
+    "watchapp": {
+        "watchface": false
+    },
+    "resources": {
+        "media": [
+            {
+                "type": "font",
+                "name": "ROBOTO_LT_15",
+                "file": "fonts/Roboto-Light.ttf"
+            },
+            {
+                "type": "font",
+                "name": "ROBOTO_LT_30",
+                "file": "fonts/Roboto-Light.ttf"
+            },
+            {
+                "menuIcon": true,
+                "type": "png",
+                "name": "ICON",
+                "file": "images/icon.png"
+            }
+        ]
+    }
+}
