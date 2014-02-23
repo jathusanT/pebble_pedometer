@@ -25,12 +25,20 @@ TextLayer *stepGoalVisualizer;
 
 //used for themes
 bool isDark = true;
+
+bool startedSession = false;
+
 int stepGoal = 0;
 int pedometerCount = 0;
 const int STEP_INCREMENT = 100;
 
 void start_callback(int index, void *ctx){
-	
+//	if (startedSession){
+//		static char buf[]="123456";	
+//		snprintf(buf, sizeof(buf), "%d", pedometerCount); 
+//		menu_items[i].title = "Continue";
+//		menu_items[i].subtitle = buf;
+//	}
 }
 
 void info_callback(int index, void *ctx){
@@ -72,7 +80,7 @@ void stepGoal_load(Window *window){
 	action_bar_layer_add_to_window(stepGoalSetter, set_stepGoal);
 	action_bar_layer_set_click_config_provider(stepGoalSetter, goal_set_click_config);
 	
-	stepGoalVisualizer = text_layer_create(GRect(0, 0, 150, 150));
+	stepGoalVisualizer = text_layer_create(GRect(0, 50, 150, 150));
 	text_layer_set_background_color(stepGoalVisualizer, GColorClear);	
 	text_layer_set_font(stepGoalVisualizer, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
     layer_add_child(window_get_root_layer(window), (Layer*) stepGoalVisualizer);
