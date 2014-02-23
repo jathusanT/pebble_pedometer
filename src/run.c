@@ -320,7 +320,7 @@ void window_load(Window *window){
 	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(splash_layer));
     
     //initializing text layers
-    main_message = text_layer_create(GRect(5, 10, 150, 170));
+    main_message = text_layer_create(GRect(3, 10, 150, 170));
     main_message2 = text_layer_create(GRect(3, 40, 150, 170));
 	hitSel = text_layer_create(GRect(3,55,200,170));
 
