@@ -241,6 +241,7 @@ void theme_callback(int index, void *ctx){
 ///////////////////////////////////////////////////////////////////
 
 void setup_menu_items(){
+	
 	for (int i = 0; i < (int)(sizeof(item_names) / sizeof(item_names[0])); i++){
 		menu_items[i] = (SimpleMenuItem){
     		.title = item_names[i],
@@ -254,6 +255,8 @@ void setup_menu_items(){
 			menu_items[i].callback = stepGoal_callback;
 		} else if (i==2){
 			menu_items[i].callback = theme_callback;
+		} else if (i==3) {
+			menu_items[i].callback = info_callback;
 		} else {
 			menu_items[i].callback = info_callback;
 		}
