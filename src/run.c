@@ -1,45 +1,112 @@
 /*
- * pebble pedometer +
+ * pebble pedometer+
  * @author jathusant
  */
 
 #include <run.h>
-
+	
 Window *window;
-ActionBarLayer *cadenza_player;
+Window *menu_window;
 
-static SimpleMenuLayer pedometer_settings;
-static SimpleMenuItem s_fruit_menu_items[4];
-static SimpleMenuItem s_animal_menu_items[4];
-static SimpleMenuSection s_menu_sections[2];
-static char *s_fruit_names[4] = {"Start", "Set Limit", "Theme", "About"};
-static char *s_animal_names[4] = {"Run", "Walk", "Jog", "Swim"};
+SimpleMenuLayer *pedometer_settings;
+SimpleMenuItem menu_items[5];
+SimpleMenuSection menu_sections[1];
+char *item_names[5] = {"Start", "Step Limit", "Change Theme", "About", "Developed By"};
+char *item_sub[5] = {"Lets Go!", "Not Set", "Current: ", "v1.0-BETA", "@jathusanT"};
 
 TextLayer *main_message;
 TextLayer *main_message2;
 TextLayer *sub_message;
 TextLayer *sub_message2;
+
+//used for themes
 bool isDark = true;
+char *theme = "Dark";
+
 int pedometerCount = 0;
 
-void up_click_handler_player(ClickRecognizerRef recognizer, void *context){
+
+////////////////////////////////////////////////////////////////////
+// Settings Menu
+///////////////////////////////////////////////////////////////////
+
+void m_up_click_handler(ClickRecognizerRef recognizer, void *context){
 }
  
-void down_click_handler_player(ClickRecognizerRef recognizer, void *context){
+void m_down_click_handler(ClickRecognizerRef recognizer, void *context){
 }
  
-void select_click_handler_player(ClickRecognizerRef recognizer, void *context){
+void m_select_click_handler(ClickRecognizerRef recognizer, void *context){
 }
 
-void click_config_provider_audio(void *context){
-    window_single_click_subscribe(BUTTON_ID_UP, up_click_handler_player);
-    window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler_player);
-    window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler_player);
+void menu_click_config_provider(void *context){
+    window_single_click_subscribe(BUTTON_ID_UP, m_up_click_handler);
+    window_single_click_subscribe(BUTTON_ID_DOWN, m_down_click_handler);
+    window_single_click_subscribe(BUTTON_ID_SELECT, m_select_click_handler);
 }
 
+void setup_menu_items(){
+	for (int i = 0; i < (int)(sizeof(item_names) / sizeof(item_names[0])); i++){
+		if (i!=2){
+			menu_items[i] = (SimpleMenuItem){
+    			.title = item_names[i],
+				.subtitle = item_sub[i],
+			};
+		} else {
+			
+			char* new_string;
+			new_string = malloc(strlen(item_sub[i])+strlen(theme)+1);
+			strcpy(new_string, item_sub[i]);
+			strcat(new_string, theme);
+				
+			menu_items[i] = (SimpleMenuItem){
+				.title = item_names[i],
+				.subtitle = new_string,
+			};
+		}
+    }
+}
+
+void setup_menu_sections(){
+	menu_sections[0] =  (SimpleMenuSection){
+		.items = menu_items,
+		.num_items = sizeof(menu_items) / sizeof(menu_items[0])
+	};
+}
+
+void setup_menu_window(){
+	menu_window = window_create();
+	
+	window_set_window_handlers(menu_window, (WindowHandlers) {
+      .load = settings_load,
+      .unload = settings_unload,
+    });
+	
+	window_set_click_config_provider(menu_window, menu_click_config_provider);
+}
+
+void settings_load(Window *window){	
+	if (isDark){
+    	//window_set_background_color(window, GColorBlack);
+	}
+	
+	Layer *layer = window_get_root_layer(menu_window);
+	
+	pedometer_settings = simple_menu_layer_create(layer_get_bounds(layer), menu_window, menu_sections, 1, NULL);
+	layer_add_child(layer,simple_menu_layer_get_layer(pedometer_settings));
+}
+
+void settings_unload(Window *window){
+    //empty for now
+}
+
+////////////////////////////////////////////////////////////////////
+// Splash Menu
+///////////////////////////////////////////////////////////////////
 void handleColorSelect(){
     if (isDark){
         isDark = false;
+		theme = "Light";
         window_set_background_color(window, GColorWhite);
         text_layer_set_text_color(main_message, GColorBlack);
         text_layer_set_text_color(main_message2, GColorBlack);
@@ -47,6 +114,7 @@ void handleColorSelect(){
         text_layer_set_text_color(sub_message2, GColorBlack);
     } else {
         isDark = true;
+		theme = "Dark";
         window_set_background_color(window, GColorBlack);
         text_layer_set_text_color(main_message, GColorWhite);
         text_layer_set_text_color(main_message2, GColorWhite);
@@ -56,25 +124,19 @@ void handleColorSelect(){
 }
 
 void up_click_handler(ClickRecognizerRef recognizer, void *context){
-    handleColorSelect();
+
 }
  
 void down_click_handler(ClickRecognizerRef recognizer, void *context){
-    handleColorSelect();
+
 }
  
 void select_click_handler(ClickRecognizerRef recognizer, void *context){
-    vibes_double_pulse();
-    action_bar_layer_add_to_window(cadenza_player, window);
-    if (isDark){
-        action_bar_layer_set_background_color(cadenza_player, GColorWhite);
-    }
-	text_layer_destroy(main_message);
-    text_layer_destroy(main_message);
-    text_layer_destroy(main_message2);
-    text_layer_destroy(sub_message);
-    text_layer_destroy(sub_message2);
-    action_bar_layer_set_click_config_provider(cadenza_player, click_config_provider_audio);
+	window_stack_pop(true);
+	setup_menu_items();
+	setup_menu_sections();
+	setup_menu_window();
+	window_stack_push(menu_window, true);
 }
 
 void click_config_provider(void *context)
@@ -85,10 +147,6 @@ void click_config_provider(void *context)
 }
 
 void window_load(Window *window){
-    //Setting up Cadenza Player Layer
-    //pedometerMenu = simple_menu_layer_create(GRect(0, 0, 150, 150), window, menu_sections, 4, void *callback_context);
-    cadenza_player = action_bar_layer_create();
-	
     window_set_background_color(window, GColorBlack);
     
     //initializing text layers
@@ -112,7 +170,7 @@ void window_load(Window *window){
     //"select a theme"
     text_layer_set_background_color(sub_message, GColorClear);
     text_layer_set_text_color(sub_message, GColorWhite);
-    text_layer_set_font(sub_message, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+    text_layer_set_font(sub_message, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
     layer_add_child(window_get_root_layer(window), (Layer*) sub_message);
     
     //"current theme:"
@@ -124,8 +182,8 @@ void window_load(Window *window){
     //setting text
     text_layer_set_text(main_message, " Welcome");
     text_layer_set_text(main_message2, "      to Pedometer+");
-    text_layer_set_text(sub_message, "        UP & DOWN\n    to change theme.");
-    text_layer_set_text(sub_message2, "     SELECT to start\n            moving!");
+    text_layer_set_text(sub_message, "    <logo>");
+    text_layer_set_text(sub_message2, "         SELECT to\n          continue!");
 } 
 
 void window_unload(Window *window){
@@ -136,22 +194,21 @@ void window_unload(Window *window){
     text_layer_destroy(sub_message2);
 }
 
+//Initializer/////////////////////////////////////////////////////////////////
+
 void handle_init(void) {
     window = window_create();
+	
     window_set_window_handlers(window, (WindowHandlers) {
       .load = window_load,
       .unload = window_unload,
     });
+	
     window_set_click_config_provider(window, click_config_provider);
+	window_set_fullscreen(window, true);
     window_stack_push(window, true);
 }
 
 void handle_deinit(void) {
     window_destroy(window);
-}
-
-int main(void) {
-    handle_init();
-    app_event_loop();
-    handle_deinit();
 }
