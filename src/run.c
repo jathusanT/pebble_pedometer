@@ -11,8 +11,8 @@ Window *menu_window;
 SimpleMenuLayer *pedometer_settings;
 SimpleMenuItem menu_items[5];
 SimpleMenuSection menu_sections[1];
-char *item_names[5] = {"Start", "Step Limit", "Change Theme", "About", "Developed By"};
-char *item_sub[5] = {"Lets Go!", "Not Set", "Current: ", "v1.0-BETA", "@jathusanT"};
+char *item_names[5] = {"Start", "Step Goal", "Pedometer Theme", "About", "Developed By"};
+char *item_sub[5] = {"Lets Go!", "Not Set", "Current: ", "v1.0-RELEASE", "Jathusan T."};
 
 TextLayer *main_message;
 TextLayer *main_message2;
@@ -20,9 +20,10 @@ TextLayer *sub_message;
 TextLayer *sub_message2;
 
 //used for themes
-bool isDark = true;
-char *theme = "Dark";
-
+bool isDark = false;
+bool stepLimitExists = false;
+char *theme = "Light";
+int stepGoal = 1000;
 int pedometerCount = 0;
 
 
@@ -47,22 +48,20 @@ void menu_click_config_provider(void *context){
 
 void setup_menu_items(){
 	for (int i = 0; i < (int)(sizeof(item_names) / sizeof(item_names[0])); i++){
-		if (i!=2){
-			menu_items[i] = (SimpleMenuItem){
-    			.title = item_names[i],
-				.subtitle = item_sub[i],
-			};
-		} else {
-			
+		menu_items[i] = (SimpleMenuItem){
+    		.title = item_names[i],
+			.subtitle = item_sub[i],
+		};
+		if (i==1 && stepGoal>0){
+			static char buf[]="123456";
+			snprintf(buf, sizeof(buf), "%d", stepGoal); 
+			menu_items[i].subtitle = buf;
+		} else if (i==2){
 			char* new_string;
 			new_string = malloc(strlen(item_sub[i])+strlen(theme)+1);
 			strcpy(new_string, item_sub[i]);
 			strcat(new_string, theme);
-				
-			menu_items[i] = (SimpleMenuItem){
-				.title = item_names[i],
-				.subtitle = new_string,
-			};
+			menu_items[i].subtitle = new_string;
 		}
     }
 }
