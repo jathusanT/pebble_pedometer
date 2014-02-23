@@ -43,10 +43,12 @@ void start_callback(int index, void *ctx){
 //		menu_items[i].title = "Continue";
 //		menu_items[i].subtitle = buf;
 //	}
+
+	// MAIN PEDOMETER APP (learn how to use the accelerometer)
 }
 
 void info_callback(int index, void *ctx){
-	
+	//create new window with dev info
 }
 
 void inc_click_handler(ClickRecognizerRef recognizer, void *context){
@@ -73,9 +75,15 @@ void dec_click_handler(ClickRecognizerRef recognizer, void *context){
 	}
 }
 
+
+void set_click_handler(ClickRecognizerRef recognizer, void *context){
+	window_stack_pop(true);
+}
+
 void goal_set_click_config(void *context){
-  window_single_click_subscribe(BUTTON_ID_DOWN, (ClickHandler) dec_click_handler);
-  window_single_click_subscribe(BUTTON_ID_UP, (ClickHandler) inc_click_handler);
+	window_single_click_subscribe(BUTTON_ID_DOWN, (ClickHandler) dec_click_handler);
+	window_single_click_subscribe(BUTTON_ID_UP, (ClickHandler) inc_click_handler);
+	window_single_click_subscribe(BUTTON_ID_SELECT, set_click_handler); 
 }
 
 void stepGoal_load(Window *window){
