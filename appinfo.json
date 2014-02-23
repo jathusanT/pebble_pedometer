@@ -15,6 +15,21 @@
     "resources": {
         "media": [
             {
+                "type": "png",
+                "name": "BTN_SETUP",
+                "file": "images/setup.png"
+            },
+            {
+                "type": "png",
+                "name": "BTN_UP",
+                "file": "images/up.png"
+            },
+            {
+                "type": "png",
+                "name": "BTN_DOWN",
+                "file": "images/down.png"
+            },
+            {
                 "type": "font",
                 "name": "ROBOTO_LT_15",
                 "file": "fonts/Roboto-Light.ttf"
