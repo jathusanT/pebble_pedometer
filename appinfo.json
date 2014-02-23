@@ -15,6 +15,16 @@
     "resources": {
         "media": [
             {
+                "type": "png",
+                "name": "PED_WHITE",
+                "file": "images/ped_white.png"
+            },
+            {
+                "type": "png",
+                "name": "PED_BLK",
+                "file": "images/ped_blk.png"
+            },
+            {
                 "type": "font",
                 "name": "ARLBD_25",
                 "file": "fonts/ARLRDBD.TTF"

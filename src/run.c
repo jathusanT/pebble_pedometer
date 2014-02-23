@@ -30,7 +30,8 @@ static GBitmap *btn_up;
 static GBitmap *btn_sel;
 static GBitmap *statusBar;
 
-static GBitmap *pedometerBack;
+GBitmap *pedometerBack;
+BitmapLayer *pedometerBack_layer;
 
 GBitmap *splash;
 BitmapLayer *splash_layer;
@@ -46,11 +47,19 @@ const int STEP_INCREMENT = 100;
 
 //MAIN PEDOMETER WINDOW 
 void ped_load(Window *window){
+		
 	if (isDark){
 		window_set_background_color(pedometer, GColorBlack);
+		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_WHITE);
 	} else {
-		window_set_background_color(pedometer, GColorWhite);
+		window_set_background_color(pedometer, GColorWhite);		
+		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_BLK);
 	}
+	
+	pedometerBack_layer = bitmap_layer_create(GRect(0,10,145,185));
+	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
+	layer_add_child(window_get_root_layer(pedometer), bitmap_layer_get_layer(pedometerBack_layer));
+	
 }
 
 void ped_unload(Window *window){
@@ -330,6 +339,7 @@ void window_unload(Window *window){
     text_layer_destroy(main_message);
     text_layer_destroy(main_message2);
 	bitmap_layer_destroy(splash_layer);
+	window_destroy(window);
 }
 
 //Initializer/////////////////////////////////////////////////////////////////
