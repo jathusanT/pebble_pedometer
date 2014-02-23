@@ -15,13 +15,17 @@ SimpleMenuLayer *pedometer_settings;
 SimpleMenuItem menu_items[5];
 SimpleMenuSection menu_sections[1];
 char *item_names[5] = {"Start", "Step Goal", "Pedometer Theme", "About", "Developed By"};
-char *item_sub[5] = {"Lets Go Running!", "Not Set", "Current: Dark", "v1.0-RELEASE", "Jathusan T, (c) 2014"};
+char *item_sub[5] = {"Lets Go Running!", "Not Set", "Current: Dark", "v1.0-DEV", "Jathusan T, (c) 2014"};
 
 TextLayer *main_message;
 TextLayer *main_message2;
 TextLayer *sub_message;
 TextLayer *sub_message2;
 TextLayer *stepGoalVisualizer;
+
+static GBitmap *btn_dwn;
+static GBitmap *btn_up;
+static GBitmap *btn_sel;
 
 //used for themes
 bool isDark = true;
@@ -79,6 +83,14 @@ void stepGoal_load(Window *window){
 	
 	action_bar_layer_add_to_window(stepGoalSetter, set_stepGoal);
 	action_bar_layer_set_click_config_provider(stepGoalSetter, goal_set_click_config);
+	
+	btn_dwn = gbitmap_create_with_resource(RESOURCE_ID_BTN_DOWN);
+    btn_up = gbitmap_create_with_resource(RESOURCE_ID_BTN_UP);
+    btn_sel = gbitmap_create_with_resource(RESOURCE_ID_BTN_SETUP);
+	
+	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_UP, btn_up);
+	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_DOWN, btn_dwn);
+	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_SELECT, btn_sel);
 	
 	stepGoalVisualizer = text_layer_create(GRect(0, 50, 150, 150));
 	text_layer_set_background_color(stepGoalVisualizer, GColorClear);	
