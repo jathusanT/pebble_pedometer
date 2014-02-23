@@ -11,6 +11,7 @@ Window *window;
 Window *menu_window;
 Window *set_stepGoal;
 Window *pedometer;
+Window *dev_info;
 
 ActionBarLayer *stepGoalSetter;
 
@@ -18,7 +19,7 @@ SimpleMenuLayer *pedometer_settings;
 SimpleMenuItem menu_items[5];
 SimpleMenuSection menu_sections[1];
 char *item_names[5] = {"Start", "Step Goal", "Theme", "Version", "About"};
-char *item_sub[5] = {"Lets Go Running!", "Not Set", "Current: Dark", "v0.1-DEV", "(c) Jathusan T"};
+char *item_sub[5] = {"Lets Exercise!", "Not Set", "Current: Dark", "v0.1-DEV", "(c) Jathusan T"};
 
 TextLayer *main_message;
 TextLayer *main_message2;
@@ -49,7 +50,7 @@ const int STEP_INCREMENT = 100;
 //MAIN PEDOMETER WINDOW 
 void ped_load(Window *window){
 		
-	steps = text_layer_create(GRect(0, 25, 150, 170));
+	steps = text_layer_create(GRect(0, 20, 150, 170));
 	
 	if (isDark){
 		window_set_background_color(pedometer, GColorBlack);
@@ -64,12 +65,12 @@ void ped_load(Window *window){
 	}
 	
 	
-   	text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
-	pedometerBack_layer = bitmap_layer_create(GRect(0,10,145,185));
+   	text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+	pedometerBack_layer = bitmap_layer_create(GRect(0,0,145,185));
 	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
 	layer_add_child(window_get_root_layer(pedometer), bitmap_layer_get_layer(pedometerBack_layer));
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
-	text_layer_set_text(steps, "   s t e p s");
+	text_layer_set_text(steps, "        > s t e p s <");
 }
 
 void ped_unload(Window *window){
@@ -77,13 +78,10 @@ void ped_unload(Window *window){
 }
 
 void start_callback(int index, void *ctx){
-//	if (startedSession){
-	
-//		static char buf[]="123456";	
-//		snprintf(buf, sizeof(buf), "%d", pedometerCount); 
-//		menu_items[i].title = "Continue";
-//		menu_items[i].subtitle = buf;
-//	}
+
+	menu_items[0].title = "Continue Run";
+	menu_items[0].subtitle = "Ready for more?";
+	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 	
 	pedometer = window_create();
 	
