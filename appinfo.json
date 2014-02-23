@@ -16,6 +16,11 @@
         "media": [
             {
                 "type": "png",
+                "name": "SPLASH",
+                "file": "images/splash.png"
+            },
+            {
+                "type": "png",
                 "name": "BTN_SETUP",
                 "file": "images/setup.png"
             },

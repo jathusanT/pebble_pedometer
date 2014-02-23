@@ -19,13 +19,14 @@ char *item_sub[5] = {"Lets Go Running!", "Not Set", "Current: Dark", "v1.0-DEV",
 
 TextLayer *main_message;
 TextLayer *main_message2;
-TextLayer *sub_message;
-TextLayer *sub_message2;
 TextLayer *stepGoalVisualizer;
 
 static GBitmap *btn_dwn;
 static GBitmap *btn_up;
 static GBitmap *btn_sel;
+
+GBitmap *splash;
+BitmapLayer *splash_layer;
 
 //used for themes
 bool isDark = true;
@@ -38,6 +39,7 @@ const int STEP_INCREMENT = 100;
 
 void start_callback(int index, void *ctx){
 //	if (startedSession){
+	
 //		static char buf[]="123456";	
 //		snprintf(buf, sizeof(buf), "%d", pedometerCount); 
 //		menu_items[i].title = "Continue";
@@ -58,6 +60,8 @@ void inc_click_handler(ClickRecognizerRef recognizer, void *context){
 	text_layer_set_text(stepGoalVisualizer, buf);
 	if (stepGoal !=0){
 		menu_items[1].subtitle = buf;
+	} else {
+		menu_items[1].subtitle = "Not Set";
 	}
 	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 }
@@ -70,6 +74,8 @@ void dec_click_handler(ClickRecognizerRef recognizer, void *context){
 		text_layer_set_text(stepGoalVisualizer, buf);
 		if (stepGoal !=0){
 			menu_items[1].subtitle = buf;
+		} else {
+			menu_items[1].subtitle = "Not Set";
 		}
 		layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 	}
@@ -237,14 +243,17 @@ void click_config_provider(void *context)
 }
 
 void window_load(Window *window){
+	splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
     window_set_background_color(window, GColorBlack);
+	
+	splash_layer = bitmap_layer_create(GRect(0,10,145,195));
+	bitmap_layer_set_bitmap(splash_layer, splash);
+	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(splash_layer));
     
     //initializing text layers
-    main_message = text_layer_create(GRect(0, 0, 150, 150));
-    main_message2 = text_layer_create(GRect(0, 30, 150, 150));
-    sub_message = text_layer_create(GRect(0,60,150,150));
-    sub_message2 = text_layer_create(GRect(0,110,150,150));
-    
+    main_message = text_layer_create(GRect(5, 20, 150, 170));
+    main_message2 = text_layer_create(GRect(3, 50, 150, 170));
+
     //"Welcome"
     text_layer_set_background_color(main_message, GColorClear);
     text_layer_set_text_color(main_message, GColorWhite);
@@ -257,31 +266,16 @@ void window_load(Window *window){
     text_layer_set_font(main_message2, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
     layer_add_child(window_get_root_layer(window), (Layer*) main_message2);
     
-    //"select a theme"
-    text_layer_set_background_color(sub_message, GColorClear);
-    text_layer_set_text_color(sub_message, GColorWhite);
-    text_layer_set_font(sub_message, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
-    layer_add_child(window_get_root_layer(window), (Layer*) sub_message);
-    
-    //"current theme:"
-    text_layer_set_background_color(sub_message2, GColorClear);
-    text_layer_set_text_color(sub_message2, GColorWhite);
-    text_layer_set_font(sub_message2, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
-    layer_add_child(window_get_root_layer(window), (Layer*) sub_message2);
-    
     //setting text
     text_layer_set_text(main_message, " Welcome");
-    text_layer_set_text(main_message2, "      to Pedometer+");
-    text_layer_set_text(sub_message, "    <logo>");
-    text_layer_set_text(sub_message2, "         SELECT to\n          continue!");
+    text_layer_set_text(main_message2, "      to Pedometer!");
 } 
 
 void window_unload(Window *window){
     text_layer_destroy(main_message);
     text_layer_destroy(main_message);
     text_layer_destroy(main_message2);
-    text_layer_destroy(sub_message);
-    text_layer_destroy(sub_message2);
+	bitmap_layer_destroy(splash_layer);
 }
 
 //Initializer/////////////////////////////////////////////////////////////////
