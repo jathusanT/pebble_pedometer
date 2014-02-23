@@ -15,6 +15,31 @@
     "resources": {
         "media": [
             {
+                "type": "png",
+                "name": "DEV",
+                "file": "images/dev.png"
+            },
+            {
+                "type": "png",
+                "name": "INFO",
+                "file": "images/info.png"
+            },
+            {
+                "type": "png",
+                "name": "GOAL",
+                "file": "images/goal.png"
+            },
+            {
+                "type": "png",
+                "name": "THEME",
+                "file": "images/theme.png"
+            },
+            {
+                "type": "png",
+                "name": "RUN",
+                "file": "images/run.png"
+            },
+            {
                 "type": "font",
                 "name": "PED_FONT_40",
                 "file": "fonts/bold_dot_digital-7.ttf"
