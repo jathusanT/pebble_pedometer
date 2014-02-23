@@ -3,6 +3,7 @@
  * @author jathusant
  */
 
+#include <pebble.h>
 #include <run.h>
 
 int main(void) {
