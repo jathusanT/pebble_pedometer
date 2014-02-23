@@ -1,4 +1,10 @@
-pebble_pedometer
-================
+Pedometer for Pebble
+====================
 
-advanced pedometer for pebble
+fully functional pedometer for pebble.
+
+v1.0
+-> added splash screen
+-> ability to change themes
+-> step goals
+-> added about screen
