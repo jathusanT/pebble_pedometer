@@ -15,6 +15,11 @@
     "resources": {
         "media": [
             {
+                "type": "font",
+                "name": "PED_FONT_40",
+                "file": "fonts/bold_dot_digital-7.ttf"
+            },
+            {
                 "type": "png",
                 "name": "PED_WHITE",
                 "file": "images/ped_white.png"

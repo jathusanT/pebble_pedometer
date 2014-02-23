@@ -15,10 +15,10 @@ Window *pedometer;
 ActionBarLayer *stepGoalSetter;
 
 SimpleMenuLayer *pedometer_settings;
-SimpleMenuItem menu_items[7];
+SimpleMenuItem menu_items[5];
 SimpleMenuSection menu_sections[1];
-char *item_names[7] = {"Start", "Step Goal", "Pedometer Theme", "Location", "Temperature", "Developed By", "About"};
-char *item_sub[7] = {"Lets Go Running!", "Not Set", "Current: Dark", "Coming Soon!", "Coming Soon!", "Jathusan T, (c) 2014", "v1.0-DEV"};
+char *item_names[5] = {"Start", "Step Goal", "Theme", "Version", "About"};
+char *item_sub[5] = {"Lets Go Running!", "Not Set", "Current: Dark", "v0.1-DEV", "(c) Jathusan T"};
 
 TextLayer *main_message;
 TextLayer *main_message2;
@@ -32,6 +32,7 @@ static GBitmap *statusBar;
 
 GBitmap *pedometerBack;
 BitmapLayer *pedometerBack_layer;
+TextLayer *steps;
 
 GBitmap *splash;
 BitmapLayer *splash_layer;
@@ -48,18 +49,27 @@ const int STEP_INCREMENT = 100;
 //MAIN PEDOMETER WINDOW 
 void ped_load(Window *window){
 		
+	steps = text_layer_create(GRect(0, 25, 150, 170));
+	
 	if (isDark){
 		window_set_background_color(pedometer, GColorBlack);
 		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_WHITE);
+		text_layer_set_background_color(steps, GColorClear);
+		text_layer_set_text_color(steps, GColorWhite);
 	} else {
 		window_set_background_color(pedometer, GColorWhite);		
 		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_BLK);
+		text_layer_set_background_color(steps, GColorClear);
+    	text_layer_set_text_color(steps, GColorBlack);
 	}
 	
+	
+   	text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
 	pedometerBack_layer = bitmap_layer_create(GRect(0,10,145,185));
 	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
 	layer_add_child(window_get_root_layer(pedometer), bitmap_layer_get_layer(pedometerBack_layer));
-	
+	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
+	text_layer_set_text(steps, "   s t e p s");
 }
 
 void ped_unload(Window *window){
