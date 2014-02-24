@@ -35,6 +35,8 @@ GBitmap *pedometerBack;
 BitmapLayer *pedometerBack_layer;
 TextLayer *steps;
 
+TextLayer *infor;
+
 GBitmap *splash;
 BitmapLayer *splash_layer;
 
@@ -75,6 +77,8 @@ void ped_load(Window *window){
 
 void ped_unload(Window *window){
 	window_destroy(pedometer);
+	text_layer_destroy(steps);
+	gbitmap_destroy(pedometerBack);
 }
 
 void start_callback(int index, void *ctx){
@@ -93,8 +97,37 @@ void start_callback(int index, void *ctx){
 	window_stack_push(pedometer, true);
 }
 
+void info_load(Window *window){
+	infor = text_layer_create(GRect(0, 0, 150, 150));
+	
+	if (isDark){
+		window_set_background_color(dev_info, GColorBlack);
+		text_layer_set_background_color(infor, GColorClear);
+		text_layer_set_text_color(infor, GColorWhite);
+	} else {
+		window_set_background_color(dev_info, GColorWhite);
+		text_layer_set_background_color(infor, GColorClear);
+    	text_layer_set_text_color(infor, GColorBlack);
+	}
+	
+	text_layer_set_font(infor, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+	layer_add_child(window_get_root_layer(dev_info), (Layer*) infor);
+	text_layer_set_text(infor, "Developed By: Jathusan Thiruchelvanathan\n\nContact:\n@jathusanT\njathusan.t@gmail.com\n\n(c) 2014");
+}
+
+void info_unload(Window *window){
+	window_destroy(dev_info);
+}
+
 void info_callback(int index, void *ctx){
-	//create new window with dev info
+	dev_info = window_create();
+	
+	window_set_window_handlers(dev_info, (WindowHandlers){
+		.load = info_load,
+		.unload = info_unload,
+	});
+	
+	window_stack_push(dev_info, true);
 }
 
 void inc_click_handler(ClickRecognizerRef recognizer, void *context){
