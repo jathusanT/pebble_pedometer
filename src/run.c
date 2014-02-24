@@ -322,7 +322,7 @@ void window_load(Window *window){
     //initializing text layers
     main_message = text_layer_create(GRect(3, 10, 150, 170));
     main_message2 = text_layer_create(GRect(3, 40, 150, 170));
-	hitSel = text_layer_create(GRect(3,55,200,170));
+	hitSel = text_layer_create(GRect(3,50,200,170));
 
     text_layer_set_background_color(main_message, GColorClear);
     text_layer_set_text_color(main_message, GColorWhite);
@@ -341,8 +341,8 @@ void window_load(Window *window){
 	
     //setting text
     text_layer_set_text(main_message, " Welcome");
-    text_layer_set_text(main_message2, "      to Pedometer!");
-	text_layer_set_text(hitSel, "\n\n\n\n\n\n     Press SELECT");
+    text_layer_set_text(main_message2, "     to Pedometer!");
+	text_layer_set_text(hitSel, "\n\n\n\n\n\n       Press Select");
 } 
 
 void window_unload(Window *window){
