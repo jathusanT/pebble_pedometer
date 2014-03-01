@@ -15,12 +15,6 @@ Window *dev_info;
 
 ActionBarLayer *stepGoalSetter;
 
-SimpleMenuLayer *pedometer_settings;
-SimpleMenuItem menu_items[5];
-SimpleMenuSection menu_sections[1];
-char *item_names[5] = {"Start", "Step Goal", "Theme", "Version", "About"};
-char *item_sub[5] = {"Lets Exercise!", "Not Set", "Current: Dark", "v0.1-DEV", "(c) Jathusan T"};
-
 TextLayer *main_message;
 TextLayer *main_message2;
 TextLayer *hitSel;
@@ -41,12 +35,20 @@ GBitmap *splash;
 BitmapLayer *splash_layer;
 
 //used for themes
+bool saveIsDark;
 bool isDark = true;
+char *theme = "Error";
+
+SimpleMenuLayer *pedometer_settings;
+SimpleMenuItem menu_items[6];
+SimpleMenuSection menu_sections[1];
+char *item_names[6] = {"Start", "Step Goal", "Previous Run", "Theme", "Version", "About"};
+char *item_sub[6] = {"Lets Exercise!", "Not Set", "No Previous Runs", "Current: ", "v0.9-DEV", "(c) Jathusan T"};
 
 bool startedSession = false;
-
 int stepGoal = 0;
 int pedometerCount = 0;
+int previousRunCount = 0;
 const int STEP_INCREMENT = 100;
 
 ///////////////////////////////////////////////////////////////////
@@ -74,8 +76,6 @@ void ped_load(Window *window){
     	text_layer_set_text_color(steps, GColorBlack);
 	}
 	
-	
-   	//text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
 	pedometerBack_layer = bitmap_layer_create(GRect(0,0,145,185));
 	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
 	layer_add_child(window_get_root_layer(pedometer), bitmap_layer_get_layer(pedometerBack_layer));
@@ -257,7 +257,6 @@ void stepGoal_callback(int index, void *ctx){
 }
 
 void theme_callback(int index, void *ctx){
-	char *theme = "";
 	if(isDark){
 		isDark = false;
 		theme = "Light";
@@ -270,7 +269,7 @@ void theme_callback(int index, void *ctx){
 	new_string = malloc(strlen(theme)+10);
 	strcpy(new_string, "Current: ");
 	strcat(new_string, theme);
-	menu_items[2].subtitle = new_string;
+	menu_items[3].subtitle = new_string;
 	
 	//marking the layer as dirty, to acknowledge layer change
 	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
@@ -283,6 +282,9 @@ void theme_callback(int index, void *ctx){
 
 void setup_menu_items(){
 	
+	static char buf[]="123456";
+	snprintf(buf, sizeof(buf), "%d", previousRunCount); 
+	
 	for (int i = 0; i < (int)(sizeof(item_names) / sizeof(item_names[0])); i++){
 		menu_items[i] = (SimpleMenuItem){
     		.title = item_names[i],
@@ -294,9 +296,12 @@ void setup_menu_items(){
 			menu_items[i].callback = start_callback;
 		} else if (i==1){
 			menu_items[i].callback = stepGoal_callback;
-		} else if (i==2){
+		} else if (i==2 && previousRunCount > 0){
+			menu_items[i].subtitle = buf;
+		} else if (i==3){
+			menu_items[i].subtitle = theme;
 			menu_items[i].callback = theme_callback;
-		} else if (i==3) {
+		} else if (i==4) {
 			menu_items[i].callback = info_callback;
 		} else {
 			menu_items[i].callback = info_callback;
@@ -353,6 +358,12 @@ void click_config_provider(void *context)
 }
 
 void window_load(Window *window){
+	if (!isDark){
+		theme = "Current: Light";
+	} else {
+		theme = "Current: Dark";
+	}
+	
 	splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
     window_set_background_color(window, GColorBlack);
 	
@@ -397,6 +408,8 @@ void window_unload(Window *window){
 //Initializer/////////////////////////////////////////////////////////////////
 
 void handle_init(void) {
+	previousRunCount = persist_read_int(previousRunCount);
+	isDark = persist_read_bool(saveIsDark);
     window = window_create();
 	//for accelerometer data
 	accel_data_service_subscribe(0, NULL);
@@ -412,6 +425,10 @@ void handle_init(void) {
 }
 
 void handle_deinit(void) {
+	if (pedometerCount > 0){
+		persist_write_int(previousRunCount, pedometerCount);
+	}
+	persist_write_bool(saveIsDark, isDark);
 	accel_data_service_unsubscribe();
 	tick_timer_service_unsubscribe();
     window_destroy(window);
