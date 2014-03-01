@@ -49,6 +49,14 @@ int stepGoal = 0;
 int pedometerCount = 0;
 const int STEP_INCREMENT = 100;
 
+///////////////////////////////////////////////////////////////////
+
+void update_ui_from_accel(void) {
+  AccelData data;
+  accel_service_peek(&data);
+  // Insert UI code here
+}
+
 //MAIN PEDOMETER WINDOW 
 void ped_load(Window *window){
 		
@@ -67,12 +75,12 @@ void ped_load(Window *window){
 	}
 	
 	
-   	text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+   	//text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
 	pedometerBack_layer = bitmap_layer_create(GRect(0,0,145,185));
 	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
 	layer_add_child(window_get_root_layer(pedometer), bitmap_layer_get_layer(pedometerBack_layer));
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
-	text_layer_set_text(steps, "        > s t e p s <");
+	text_layer_set_text(steps, "                S T E P S");
 }
 
 void ped_unload(Window *window){
@@ -110,9 +118,9 @@ void info_load(Window *window){
     	text_layer_set_text_color(infor, GColorBlack);
 	}
 	
-	text_layer_set_font(infor, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
 	layer_add_child(window_get_root_layer(dev_info), (Layer*) infor);
-	text_layer_set_text(infor, "Developed By: Jathusan Thiruchelvanathan\n\nContact:\n@jathusanT\njathusan.t@gmail.com\n\n(c) 2014");
+	text_layer_set_text_alignment(infor, GTextAlignmentCenter);
+	text_layer_set_text(infor, "\nDeveloped By: \nJathusan Thiruchelvanathan\n\nContact:\njathusan.t@gmail.com\n\n2014");
 }
 
 void info_unload(Window *window){
@@ -390,6 +398,8 @@ void window_unload(Window *window){
 
 void handle_init(void) {
     window = window_create();
+	//for accelerometer data
+	accel_data_service_subscribe(0, NULL);
 	
     window_set_window_handlers(window, (WindowHandlers) {
       .load = window_load,
@@ -402,5 +412,7 @@ void handle_init(void) {
 }
 
 void handle_deinit(void) {
+	accel_data_service_unsubscribe();
+	tick_timer_service_unsubscribe();
     window_destroy(window);
 }
