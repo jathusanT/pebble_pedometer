@@ -1,5 +1,5 @@
 /*
- * pebble pedometer+
+ * pebble pedometer
  * @author jathusant
  */
 

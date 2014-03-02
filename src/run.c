@@ -1,11 +1,13 @@
 /*
- * pebble pedometer+
+ * pebble pedometer
  * @author jathusant
  */
 
 #include <pebble.h>
 #include <run.h>
 #include <sys/time.h>
+
+#define ACCEL_STEP_MS 50
 	
 Window *window;
 Window *menu_window;
@@ -13,45 +15,57 @@ Window *set_stepGoal;
 Window *pedometer;
 Window *dev_info;
 
-ActionBarLayer *stepGoalSetter;
-
-TextLayer *main_message;
-TextLayer *main_message2;
-TextLayer *hitSel;
-TextLayer *stepGoalVisualizer;
-
-static GBitmap *btn_dwn;
-static GBitmap *btn_up;
-static GBitmap *btn_sel;
-static GBitmap *statusBar;
-
-GBitmap *pedometerBack;
-BitmapLayer *pedometerBack_layer;
-TextLayer *steps;
-
-TextLayer *infor;
-
-GBitmap *splash;
-BitmapLayer *splash_layer;
-
-//used for themes
-bool saveIsDark;
-bool isDark = true;
-char *theme = "Error";
-
 SimpleMenuLayer *pedometer_settings;
 SimpleMenuItem menu_items[6];
 SimpleMenuSection menu_sections[1];
 char *item_names[6] = {"Start", "Step Goal", "Previous Run", "Theme", "Version", "About"};
 char *item_sub[6] = {"Lets Exercise!", "Not Set", "No Previous Runs", "Current: ", "v0.9-DEV", "(c) Jathusan T"};
 
+ActionBarLayer *stepGoalSetter;
+
+TextLayer *main_message;
+TextLayer *main_message2;
+TextLayer *hitSel;
+TextLayer *stepGoalVisualizer;
+TextLayer *steps;
+TextLayer *infor;
+
+static GBitmap *btn_dwn;
+static GBitmap *btn_up;
+static GBitmap *btn_sel;
+static GBitmap *statusBar;
+GBitmap *pedometerBack;
+BitmapLayer *pedometerBack_layer;
+GBitmap *splash;
+BitmapLayer *splash_layer;
+
+static AppTimer *timer;
+
+char *theme;
+bool saveIsDark;
+bool isDark = true;
 bool startedSession = false;
 int stepGoal = 0;
 int pedometerCount = 0;
 int previousRunCount = 0;
 const int STEP_INCREMENT = 100;
-
 ///////////////////////////////////////////////////////////////////
+
+static void timer_callback(void *data) {
+  AccelData accel = (AccelData) { .x = 0, .y = 0, .z = 0 };
+
+  accel_service_peek(&accel);
+
+  for (int i = 0; i < NUM_DISCS; i++) {
+    Disc *disc = &discs[i];
+    disc_apply_accel(disc, accel);
+    disc_update(disc);
+  }
+
+  layer_mark_dirty(disc_layer);
+
+  timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
+}
 
 void update_ui_from_accel(void) {
   AccelData data;
@@ -418,6 +432,8 @@ void handle_init(void) {
       .load = window_load,
       .unload = window_unload,
     });
+	
+  	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
 	
     window_set_click_config_provider(window, click_config_provider);
 	window_set_fullscreen(window, true);
