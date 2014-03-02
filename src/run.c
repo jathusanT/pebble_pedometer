@@ -10,6 +10,8 @@
 
 //interval for each accelerometer check
 #define ACCEL_STEP_MS 450
+#define TOTAL_STEPS_KEY 0
+#define TOTAL_STEPS_DEFAULT 0
 	
 Window *window;
 Window *menu_window;
@@ -60,8 +62,7 @@ bool startedSession = false;
 int stepGoal = 0;
 int pedometerCount = 0;
 int caloriesBurned = 0;
-int totalSteps;
-int totalSteps_SAVE;
+static int totalSteps = TOTAL_STEPS_DEFAULT;
 const int STEP_INCREMENT = 100;
 int lastX, lastY, lastZ = 0;
 int currX, currY, currZ = 0;
@@ -507,19 +508,16 @@ void settings_unload(Window *window) {
 
 //Initializer/////////////////////////////////////////////////////////////////
 
-void handle_init(void) {
-	if (persist_exists(totalSteps_SAVE)){
-		totalSteps = persist_read_int(totalSteps_SAVE);
-	}
-	if (persist_exists(saveIsDark)){
-		isDark = persist_read_bool(saveIsDark);
-	}
-	
+void handle_init(void) {		
 	window = window_create();
 	
 	setup_menu_items();
 	setup_menu_sections();
 	setup_menu_window();
+	
+	totalSteps = persist_exists(TOTAL_STEPS_KEY) ? persist_read_int(TOTAL_STEPS_KEY) : TOTAL_STEPS_DEFAULT;	
+  	isDark = persist_exists(saveIsDark) ? persist_read_bool(saveIsDark) : true;
+	
 	window_stack_push(menu_window, true);
 
 	//for accelerometer data
@@ -527,7 +525,7 @@ void handle_init(void) {
 }
 
 void handle_deinit(void) {
-	persist_write_int(totalSteps_SAVE, totalSteps);
+	persist_write_int(TOTAL_STEPS_KEY, totalSteps);
 	persist_write_bool(saveIsDark, isDark);
 	accel_data_service_unsubscribe();
 	window_destroy(window);
