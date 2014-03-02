@@ -26,12 +26,17 @@
             },
             {
                 "type": "font",
-                "name": "ARLBD_25",
+                "name": "ARLBD_20",
                 "file": "fonts/ARLRDBD.TTF"
             },
             {
                 "type": "font",
                 "name": "ARLBD_30",
+                "file": "fonts/ARLRDBD.TTF"
+            },
+            {
+                "type": "font",
+                "name": "ARLBD_25",
                 "file": "fonts/ARLRDBD.TTF"
             },
             {

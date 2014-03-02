@@ -9,7 +9,7 @@
 #include <math.h>
 
 //interval for each accelerometer check
-#define ACCEL_STEP_MS 400
+#define ACCEL_STEP_MS 450
 	
 Window *window;
 Window *menu_window;
@@ -22,9 +22,9 @@ SimpleMenuItem menu_items[6];
 SimpleMenuSection menu_sections[1];
 
 char *item_names[6] = 
-	{ "Start", "Step Goal", "Previous Run", "Theme", "Version", "About" };
+	{ "Start", "Step Goal", "Total Steps", "Theme", "Version", "About" };
 char *item_sub[6] = 
-	{ "Lets Exercise!", "Not Set", "No Previous Runs", "Current: ", "v0.9-DEV", "(c) Jathusan T" };
+	{ "Lets Exercise!", "Not Set", "0 Overall", "Current: ", "v0.9-DEV", "(c) Jathusan T" };
 
 ActionBarLayer *stepGoalSetter;
 
@@ -48,23 +48,73 @@ GBitmap *splash;
 BitmapLayer *splash_layer;
 
 const int STEPS_PER_CALORIE = 20;
-const int X_DELTA = 215;
+const int X_DELTA = 200;
 const int Y_DELTA = 140;
-const int Z_DELTA = 75;
+const int Z_DELTA = 65;
 
 char *theme;
 bool saveIsDark;
 bool isDark = true;
 bool startedSession = false;
-int stepGoal = 0;
+int stepGoal = 5;
 int pedometerCount = 0;
 int previousRunCount = 0;
+int previousRunSave;
 const int STEP_INCREMENT = 100;
 int lastX, lastY, lastZ = 0;
 int currX, currY, currZ = 0;
 bool validX, validY, validZ = false;
 
 /* code */
+
+void window_load(Window *window) {
+
+	splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
+	window_set_background_color(window, GColorBlack);
+
+	splash_layer = bitmap_layer_create(GRect(0, 0, 145, 185));
+	bitmap_layer_set_bitmap(splash_layer, splash);
+	layer_add_child(window_get_root_layer(window),
+			bitmap_layer_get_layer(splash_layer));
+
+	main_message = text_layer_create(GRect(0, 0, 150, 170));
+	main_message2 = text_layer_create(GRect(3, 35, 150, 170));
+	hitSel = text_layer_create(GRect(3, 40, 200, 170));
+
+	text_layer_set_background_color(main_message, GColorClear);
+	text_layer_set_text_color(main_message, GColorWhite);
+	text_layer_set_font(main_message,
+			fonts_load_custom_font(
+					resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
+	layer_add_child(window_get_root_layer(window), (Layer*) main_message);
+
+	text_layer_set_background_color(main_message2, GColorClear);
+	text_layer_set_text_color(main_message2, GColorWhite);
+	text_layer_set_font(main_message2,
+			fonts_load_custom_font(
+					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+	layer_add_child(window_get_root_layer(window), (Layer*) main_message2);
+
+	text_layer_set_background_color(hitSel, GColorClear);
+	text_layer_set_text_color(hitSel, GColorWhite);
+	text_layer_set_font(hitSel,
+			fonts_load_custom_font(
+					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+	layer_add_child(window_get_root_layer(window), (Layer*) hitSel);
+
+	
+	text_layer_set_text(main_message, "     GOAL");
+	text_layer_set_text(main_message2, "          Reached!");
+	text_layer_set_text(hitSel, "\n\n\n\n\n\n        Press Back...");
+}
+
+void window_unload(Window *window) {
+	text_layer_destroy(main_message);
+	text_layer_destroy(main_message2);
+	text_layer_destroy(hitSel);
+	bitmap_layer_destroy(splash_layer);
+	window_destroy(window);
+}
 
 void pedometer_update() {
 	if (currX != 0 && currY != 0 && currZ != 0) {
@@ -89,7 +139,7 @@ void resetUpdate() {
 	validZ = false;
 }
 
-void update_ui_callback(/*Layer *me, GContext *ctx*/) {
+void update_ui_callback() {
 	
 	if (validX && validY && validZ) {
 		pedometerCount++;
@@ -97,6 +147,12 @@ void update_ui_callback(/*Layer *me, GContext *ctx*/) {
 		snprintf(buf, sizeof(buf), "%d", pedometerCount);
 		text_layer_set_text(pedCount, buf);
 		layer_mark_dirty(window_get_root_layer(pedometer));
+		if (stepGoal > 0 && pedometerCount == stepGoal){
+			vibes_long_pulse();
+			window_set_window_handlers(window, (WindowHandlers ) { .load = window_load,
+																  .unload = window_unload, });
+			window_stack_push(window, true);
+		}
 	}
 
 	resetUpdate();
@@ -383,9 +439,7 @@ void setup_menu_items() {
 		} else if (i == 3) {
 			menu_items[i].subtitle = theme;
 			menu_items[i].callback = theme_callback;
-		} else if (i == 4) {
-			menu_items[i].callback = info_callback;
-		} else {
+		} else if (i == 4 || i == 5) {
 			menu_items[i].callback = info_callback;
 		}
 	}
@@ -404,6 +458,12 @@ void setup_menu_window() {
 }
 
 void settings_load(Window *window) {
+	if (!isDark) {
+		theme = "Current: Light";
+	} else {
+		theme = "Current: Dark";
+	}
+	
 	Layer *layer = window_get_root_layer(menu_window);
 	statusBar = gbitmap_create_with_resource(RESOURCE_ID_STATUS_BAR);
 
@@ -419,88 +479,17 @@ void settings_unload(Window *window) {
 	simple_menu_layer_destroy(pedometer_settings);
 }
 
-////////////////////////////////////////////////////////////////////
-// Splash Menu
-///////////////////////////////////////////////////////////////////
+//Initializer/////////////////////////////////////////////////////////////////
 
-void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-	window_stack_pop(true);
+void handle_init(void) {
+	previousRunCount = persist_read_int(previousRunSave);
+	isDark = persist_read_bool(saveIsDark);
+	window = window_create();
+	
 	setup_menu_items();
 	setup_menu_sections();
 	setup_menu_window();
 	window_stack_push(menu_window, true);
-}
-
-void click_config_provider(void *context) {
-	window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-}
-
-void window_load(Window *window) {
-	if (!isDark) {
-		theme = "Current: Light";
-	} else {
-		theme = "Current: Dark";
-	}
-
-	splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
-	window_set_background_color(window, GColorBlack);
-
-	splash_layer = bitmap_layer_create(GRect(0, 10, 145, 185));
-	bitmap_layer_set_bitmap(splash_layer, splash);
-	layer_add_child(window_get_root_layer(window),
-			bitmap_layer_get_layer(splash_layer));
-
-	main_message = text_layer_create(GRect(3, 10, 150, 170));
-	main_message2 = text_layer_create(GRect(3, 40, 150, 170));
-	hitSel = text_layer_create(GRect(3, 50, 200, 170));
-
-	text_layer_set_background_color(main_message, GColorClear);
-	text_layer_set_text_color(main_message, GColorWhite);
-	text_layer_set_font(main_message,
-			fonts_load_custom_font(
-					resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
-	layer_add_child(window_get_root_layer(window), (Layer*) main_message);
-
-	text_layer_set_background_color(main_message2, GColorClear);
-	text_layer_set_text_color(main_message2, GColorWhite);
-	text_layer_set_font(main_message2,
-			fonts_load_custom_font(
-					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
-	layer_add_child(window_get_root_layer(window), (Layer*) main_message2);
-
-	text_layer_set_background_color(hitSel, GColorClear);
-	text_layer_set_text_color(hitSel, GColorWhite);
-	text_layer_set_font(hitSel,
-			fonts_load_custom_font(
-					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
-	layer_add_child(window_get_root_layer(window), (Layer*) hitSel);
-
-	text_layer_set_text(main_message, " Welcome");
-	text_layer_set_text(main_message2, "     to Pedometer!");
-	text_layer_set_text(hitSel, "\n\n\n\n\n\n       Press Select");
-}
-
-void window_unload(Window *window) {
-	text_layer_destroy(main_message);
-	text_layer_destroy(main_message);
-	text_layer_destroy(main_message2);
-	bitmap_layer_destroy(splash_layer);
-	window_destroy(window);
-}
-
-//Initializer/////////////////////////////////////////////////////////////////
-
-void handle_init(void) {
-	previousRunCount = persist_read_int(previousRunCount);
-	isDark = persist_read_bool(saveIsDark);
-	window = window_create();
-
-	window_set_window_handlers(window, (WindowHandlers ) { .load = window_load,
-					.unload = window_unload, });
-
-	window_set_click_config_provider(window, click_config_provider);
-	window_set_fullscreen(window, true);
-	window_stack_push(window, true);
 
 	//for accelerometer data
 	accel_data_service_subscribe(0, NULL);
@@ -508,7 +497,7 @@ void handle_init(void) {
 
 void handle_deinit(void) {
 	if (pedometerCount > 0) {
-		persist_write_int(previousRunCount, pedometerCount);
+		persist_write_int(previousRunSave, pedometerCount);
 	}
 	persist_write_bool(saveIsDark, isDark);
 	accel_data_service_unsubscribe();
