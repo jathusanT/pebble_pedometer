@@ -24,7 +24,7 @@ SimpleMenuSection menu_sections[1];
 char *item_names[6] = 
 	{ "Start", "Step Goal", "Overall Steps", "Theme", "Version", "About" };
 char *item_sub[6] = 
-	{ "Lets Exercise!", "Not Set", "0 Total", "Current: Error Loading", "v1.0-RELEASE", "(c) Jathusan T" };
+	{ "Lets Exercise!", "Not Set", "0 Total", "Current: Error Loading", "v1.0-RELEASE", "Jathusan Thiruchelvanathan" };
 
 ActionBarLayer *stepGoalSetter;
 
@@ -37,6 +37,7 @@ TextLayer *stepGoalVisualizer;
 TextLayer *steps;
 TextLayer *pedCount;
 TextLayer *infor;
+TextLayer *calories;
 
 static GBitmap *btn_dwn;
 static GBitmap *btn_up;
@@ -47,7 +48,7 @@ BitmapLayer *pedometerBack_layer;
 GBitmap *splash;
 BitmapLayer *splash_layer;
 
-const int STEPS_PER_CALORIE = 20;
+const int STEPS_PER_CALORIE = 22;
 const int X_DELTA = 200;
 const int Y_DELTA = 140;
 const int Z_DELTA = 65;
@@ -58,6 +59,7 @@ bool isDark = true;
 bool startedSession = false;
 int stepGoal = 0;
 int pedometerCount = 0;
+int caloriesBurned = 0;
 int totalSteps;
 int totalSteps_SAVE;
 const int STEP_INCREMENT = 100;
@@ -143,10 +145,21 @@ void update_ui_callback() {
 	
 	if (validX && validY && validZ) {
 		pedometerCount++;
+		totalSteps++;
+		
+		caloriesBurned = (int)(pedometerCount / STEPS_PER_CALORIE);
+		static char calBuf[] = "123456890abcdefghijkl";
+		snprintf(calBuf, sizeof(calBuf), "Calories: %d", caloriesBurned);
+		text_layer_set_text(calories, calBuf);
+		
 		static char buf[] = "123456890abcdefghijkl";
 		snprintf(buf, sizeof(buf), "%d", pedometerCount);
 		text_layer_set_text(pedCount, buf);
+		static char buf2[] = "123456890abcdefghijkl";
+		snprintf(buf2, sizeof(buf2), "%d Total", totalSteps);  
+		menu_items[2].subtitle = buf2;
 		layer_mark_dirty(window_get_root_layer(pedometer));
+		layer_mark_dirty(window_get_root_layer(menu_window));
 		if (stepGoal > 0 && pedometerCount == stepGoal){
 			vibes_long_pulse();
 			window_set_window_handlers(window, (WindowHandlers ) { .load = window_load,
@@ -183,21 +196,26 @@ static void timer_callback(void *data) {
 void ped_load(Window *window) {
 	steps = text_layer_create(GRect(0, 20, 150, 170));
 	pedCount = text_layer_create(GRect(0, 80, 150, 170));
+	calories = text_layer_create(GRect(0, 20, 150, 170));
 
 	if (isDark) {
 		window_set_background_color(pedometer, GColorBlack);
 		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_WHITE);
 		text_layer_set_background_color(steps, GColorClear);
-		text_layer_set_text_color(steps, GColorWhite);
+		text_layer_set_text_color(steps, GColorBlack);
 		text_layer_set_background_color(pedCount, GColorClear);
 		text_layer_set_text_color(pedCount, GColorBlack);
+		text_layer_set_background_color(calories, GColorClear);
+		text_layer_set_text_color(calories, GColorWhite);
 	} else {
 		window_set_background_color(pedometer, GColorWhite);
 		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_BLK);
 		text_layer_set_background_color(steps, GColorClear);
-		text_layer_set_text_color(steps, GColorBlack);
+		text_layer_set_text_color(steps, GColorWhite);
 		text_layer_set_background_color(pedCount, GColorClear);
 		text_layer_set_text_color(pedCount, GColorWhite);
+		text_layer_set_background_color(calories, GColorClear);
+		text_layer_set_text_color(calories, GColorBlack);
 	}
 	
 	pedometerBack_layer = bitmap_layer_create(GRect(0, 0, 145, 185));
@@ -208,14 +226,22 @@ void ped_load(Window *window) {
 	
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) pedCount);
+	layer_add_child(window_get_root_layer(pedometer), (Layer*) calories);
 	
 	text_layer_set_font(pedCount, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ARLBD_30)));
+	
 	text_layer_set_text_alignment(pedCount, GTextAlignmentCenter);
-	text_layer_set_text(steps, "                S T E P S");
+	text_layer_set_text_alignment(calories, GTextAlignmentCenter);
+	
+	text_layer_set_text(steps, "\n\n\n                S T E P S");
 	
 	static char buf[] = "1234567890";
 	snprintf(buf, sizeof(buf), "%d", pedometerCount);
 	text_layer_set_text(pedCount, buf);
+	
+	static char buf2[] = "1234567890abcdefghijkl";
+	snprintf(buf2, sizeof(buf2), "Calories: %d", caloriesBurned);
+	text_layer_set_text(calories, buf2);
 }
 
 void ped_unload(Window *window) {
@@ -482,8 +508,13 @@ void settings_unload(Window *window) {
 //Initializer/////////////////////////////////////////////////////////////////
 
 void handle_init(void) {
-	totalSteps = persist_read_int(totalSteps_SAVE);
-	isDark = persist_read_bool(saveIsDark);
+	if (persist_exists(totalSteps_SAVE)){
+		totalSteps = persist_read_int(totalSteps_SAVE);
+	}
+	if (persist_exists(saveIsDark)){
+		isDark = persist_read_bool(saveIsDark);
+	}
+	
 	window = window_create();
 	
 	setup_menu_items();
@@ -496,7 +527,6 @@ void handle_init(void) {
 }
 
 void handle_deinit(void) {
-	totalSteps += pedometerCount;
 	persist_write_int(totalSteps_SAVE, totalSteps);
 	persist_write_bool(saveIsDark, isDark);
 	accel_data_service_unsubscribe();
