@@ -8,8 +8,9 @@
 #include <sys/time.h>
 #include <math.h>
 
-#define ACCEL_STEP_MS 300
-
+//interval for each accelerometer check
+#define ACCEL_STEP_MS 400
+	
 Window *window;
 Window *menu_window;
 Window *set_stepGoal;
@@ -62,7 +63,6 @@ const int STEP_INCREMENT = 100;
 int lastX, lastY, lastZ = 0;
 int currX, currY, currZ = 0;
 bool validX, validY, validZ = false;
-long timeDataCollected = 0;
 
 /* code */
 
@@ -80,28 +80,6 @@ void pedometer_update() {
 	}
 }
 
-static void timer_callback(void *data) {
-	AccelData accel = (AccelData ) { .x = 0, .y = 0, .z = 0 };
-	accel_service_peek(&accel);
-
-	if (!startedSession) {
-		startedSession = true;
-		timeDataCollected = accel.timestamp;
-		lastX = accel.x;
-		lastY = accel.y;
-		lastZ = accel.z;
-	} else {
-		currX = accel.x;
-		currY = accel.y;
-		currZ = accel.z;
-	}
-
-	pedometer_update();
-
-	layer_mark_dirty(window_get_root_layer(pedometer));
-	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
-}
-
 void resetUpdate() {
 	lastX = currX;
 	lastY = currY;
@@ -111,8 +89,8 @@ void resetUpdate() {
 	validZ = false;
 }
 
-void update_ui_callback(Layer *me, GContext *ctx) {
-
+void update_ui_callback(/*Layer *me, GContext *ctx*/) {
+	
 	if (validX && validY && validZ) {
 		pedometerCount++;
 		static char buf[] = "123456890abcdefghijkl";
@@ -124,9 +102,31 @@ void update_ui_callback(Layer *me, GContext *ctx) {
 	resetUpdate();
 }
 
+static void timer_callback(void *data) {
+	AccelData accel = (AccelData ) { .x = 0, .y = 0, .z = 0 };
+	accel_service_peek(&accel);
+
+	if (!startedSession) {
+		startedSession = true;
+		lastX = accel.x;
+		lastY = accel.y;
+		lastZ = accel.z;
+	} else {
+		currX = accel.x;
+		currY = accel.y;
+		currZ = accel.z;
+	}
+
+	pedometer_update();
+	update_ui_callback();
+	
+	layer_mark_dirty(window_get_root_layer(pedometer));
+	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
+}
+
 void ped_load(Window *window) {
 	steps = text_layer_create(GRect(0, 20, 150, 170));
-	pedCount = text_layer_create(GRect(0, 90, 150, 170));
+	pedCount = text_layer_create(GRect(0, 80, 150, 170));
 
 	if (isDark) {
 		window_set_background_color(pedometer, GColorBlack);
@@ -138,23 +138,28 @@ void ped_load(Window *window) {
 	} else {
 		window_set_background_color(pedometer, GColorWhite);
 		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_BLK);
+		text_layer_set_background_color(steps, GColorClear);
+		text_layer_set_text_color(steps, GColorBlack);
 		text_layer_set_background_color(pedCount, GColorClear);
 		text_layer_set_text_color(pedCount, GColorWhite);
 	}
-
+	
 	pedometerBack_layer = bitmap_layer_create(GRect(0, 0, 145, 185));
+	
 	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
 	layer_add_child(window_get_root_layer(pedometer),
 			bitmap_layer_get_layer(pedometerBack_layer));
+	
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) pedCount);
-	text_layer_set_font(pedCount, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ROBOTO_LT_30)));
+	
+	text_layer_set_font(pedCount, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ARLBD_30)));
 	text_layer_set_text_alignment(pedCount, GTextAlignmentCenter);
 	text_layer_set_text(steps, "                S T E P S");
+	
 	static char buf[] = "1234567890";
 	snprintf(buf, sizeof(buf), "%d", pedometerCount);
-	text_layer_set_text(steps, "0");
-	layer_set_update_proc(window_get_root_layer(pedometer), update_ui_callback);
+	text_layer_set_text(pedCount, buf);
 }
 
 void ped_unload(Window *window) {
@@ -163,9 +168,7 @@ void ped_unload(Window *window) {
 	gbitmap_destroy(pedometerBack);
 }
 
-void start_callback(int index, void *ctx) {
-	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
-	
+void start_callback(int index, void *ctx) {	
 	menu_items[0].title = "Continue Run";
 	menu_items[0].subtitle = "Ready for more?";
 	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
@@ -176,6 +179,7 @@ void start_callback(int index, void *ctx) {
 					.unload = ped_unload, });
 
 	window_stack_push(pedometer, true);
+	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
 }
 
 void info_load(Window *window) {
@@ -508,6 +512,5 @@ void handle_deinit(void) {
 	}
 	persist_write_bool(saveIsDark, isDark);
 	accel_data_service_unsubscribe();
-	tick_timer_service_unsubscribe();
 	window_destroy(window);
 }
