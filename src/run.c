@@ -22,9 +22,9 @@ SimpleMenuItem menu_items[6];
 SimpleMenuSection menu_sections[1];
 
 char *item_names[6] = 
-	{ "Start", "Step Goal", "Total Steps", "Theme", "Version", "About" };
+	{ "Start", "Step Goal", "Overall Steps", "Theme", "Version", "About" };
 char *item_sub[6] = 
-	{ "Lets Exercise!", "Not Set", "0 Overall", "Current: ", "v0.9-DEV", "(c) Jathusan T" };
+	{ "Lets Exercise!", "Not Set", "0 Total", "Current: Error Loading", "v1.0-RELEASE", "(c) Jathusan T" };
 
 ActionBarLayer *stepGoalSetter;
 
@@ -56,10 +56,10 @@ char *theme;
 bool saveIsDark;
 bool isDark = true;
 bool startedSession = false;
-int stepGoal = 5;
+int stepGoal = 0;
 int pedometerCount = 0;
-int previousRunCount = 0;
-int previousRunSave;
+int totalSteps;
+int totalSteps_SAVE;
 const int STEP_INCREMENT = 100;
 int lastX, lastY, lastZ = 0;
 int currX, currY, currZ = 0;
@@ -420,21 +420,27 @@ void theme_callback(int index, void *ctx) {
 ///////////////////////////////////////////////////////////////////
 
 void setup_menu_items() {
-
+	if (!isDark) {
+		theme = "Current: Light";
+	} else {
+		theme = "Current: Dark";
+	}
+	
 	static char buf[] = "1234567890abcdefg";
-	snprintf(buf, sizeof(buf), "%d Steps", previousRunCount);
+	snprintf(buf, sizeof(buf), "%d in Total", totalSteps);
 
 	for (int i = 0; i < (int) (sizeof(item_names) / sizeof(item_names[0]));
 			i++) {
-		menu_items[i] = (SimpleMenuItem ) { .title = item_names[i], .subtitle =
-						item_sub[i], };
+		menu_items[i] = (SimpleMenuItem ) { 
+			.title = item_names[i], 
+			.subtitle =	item_sub[i],};
 
 		//Setting Callbacks
 		if (i == 0) {
 			menu_items[i].callback = start_callback;
 		} else if (i == 1) {
 			menu_items[i].callback = stepGoal_callback;
-		} else if (i == 2 && previousRunCount > 0) {
+		} else if (i == 2) {
 			menu_items[i].subtitle = buf;
 		} else if (i == 3) {
 			menu_items[i].subtitle = theme;
@@ -457,13 +463,7 @@ void setup_menu_window() {
 					settings_load, .unload = settings_unload, });
 }
 
-void settings_load(Window *window) {
-	if (!isDark) {
-		theme = "Current: Light";
-	} else {
-		theme = "Current: Dark";
-	}
-	
+void settings_load(Window *window) {	
 	Layer *layer = window_get_root_layer(menu_window);
 	statusBar = gbitmap_create_with_resource(RESOURCE_ID_STATUS_BAR);
 
@@ -482,7 +482,7 @@ void settings_unload(Window *window) {
 //Initializer/////////////////////////////////////////////////////////////////
 
 void handle_init(void) {
-	previousRunCount = persist_read_int(previousRunSave);
+	totalSteps = persist_read_int(totalSteps_SAVE);
 	isDark = persist_read_bool(saveIsDark);
 	window = window_create();
 	
@@ -496,9 +496,8 @@ void handle_init(void) {
 }
 
 void handle_deinit(void) {
-	if (pedometerCount > 0) {
-		persist_write_int(previousRunSave, pedometerCount);
-	}
+	totalSteps += pedometerCount;
+	persist_write_int(totalSteps_SAVE, totalSteps);
 	persist_write_bool(saveIsDark, isDark);
 	accel_data_service_unsubscribe();
 	window_destroy(window);
