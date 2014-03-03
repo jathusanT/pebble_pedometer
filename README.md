@@ -1,15 +1,15 @@
-Pedometer for Pebble
-====================
 
-![Photo](http://i.imgur.com/Z6CFtBU.png)
+![Photo](http://i.imgur.com/reGVayQ.png) Pedometer For Pebble
+=============================================================
 
 ### What's New in Version 1.0
-* Set Goals, and be notified when you reach your goal
-* Overview of total steps, and calories burned
-* Interchangeable Themes! (Dark and Light)
+![Photo](http://i.imgur.com/Z6CFtBU.png)
 
 ### Available for Download now on the Pebble Appstore!
 * Don't have a pebble? www.getpebble.com
+
+![Photo](http://i.imgur.com/IXpNO5c.png)  ![Photo](http://i.imgur.com/CHJk8uF.png)  ![Photo](http://i.imgur.com/xMoq23y.png)  ![Photo](http://i.imgur.com/ruZixLM.png)  ![Photo](http://i.imgur.com/who9sBp.png)
+
 
 ## License
 Copyright (c) 2014 [Jathusan Thiruchelvanathan](http://www.twitter.com/jathusanT)
