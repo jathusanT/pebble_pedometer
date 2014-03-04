@@ -1,14 +1,18 @@
-
-![Photo](http://i.imgur.com/reGVayQ.png) Pedometer For Pebble
+![Photo](http://i.imgur.com/29Prl3h.png) Pedometer For Pebble
 =============================================================
 
-### What's New in Version 1.0
-![Photo](http://i.imgur.com/Z6CFtBU.png)
+![Photo](http://i.imgur.com/GbmttlK.png)
+### What's New in Version 1.1
+* Increased pedometer accuracy
+* Fixed UI Inconsistencies (mainly fonts)
+* View total steps and calories burned overtime
+* Set and be notified when you reach your daily step goal
+* Switch between two themes
 
 ### Available for Download now on the Pebble Appstore!
 * Don't have a pebble? www.getpebble.com
 
-![Photo](http://i.imgur.com/IXpNO5c.png)  ![Photo](http://i.imgur.com/CHJk8uF.png)  ![Photo](http://i.imgur.com/xMoq23y.png)  ![Photo](http://i.imgur.com/ruZixLM.png)  ![Photo](http://i.imgur.com/who9sBp.png)
+![Photo](http://i.imgur.com/IXpNO5c.png)  ![Photo](http://i.imgur.com/CHJk8uF.png)  ![Photo](http://i.imgur.com/hOZ0xOb.png)  ![Photo](http://i.imgur.com/gWYARvN.png)  ![Photo](http://i.imgur.com/who9sBp.png)
 
 
 ## License
