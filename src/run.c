@@ -48,11 +48,11 @@ BitmapLayer *pedometerBack_layer;
 GBitmap *splash;
 BitmapLayer *splash_layer;
 
-const int ACCEL_STEP_MS = 525;
+const int ACCEL_STEP_MS = 505;
 const int STEPS_PER_CALORIE = 22;
-const int X_DELTA = 82;
-const int Y_DELTA = 137;
-const int Z_DELTA = 82;
+const int X_DELTA = 85;
+const int Y_DELTA = 140;
+const int Z_DELTA = 85;
 
 char *theme;
 bool SID;
