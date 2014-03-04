@@ -23,7 +23,7 @@ static SimpleMenuSection menu_sections[1];
 char *item_names[7] = { "Start", "Step Goal", "Overall Steps", "Overall Calories", "Theme",
 		"Version", "About" };
 char *item_sub[7] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
-		"Current: Error Loading", "v1.0-RELEASE", "Jathusan T." };
+		"Current: Error Loading", "v1.1-RELEASE", "Jathusan T." };
 
 ActionBarLayer *stepGoalSetter;
 
