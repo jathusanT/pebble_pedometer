@@ -37,6 +37,7 @@ TextLayer *steps;
 TextLayer *pedCount;
 TextLayer *infor;
 TextLayer *calories;
+TextLayer *stepGoalText;
 
 static GBitmap *btn_dwn;
 static GBitmap *btn_up;
@@ -47,11 +48,11 @@ BitmapLayer *pedometerBack_layer;
 GBitmap *splash;
 BitmapLayer *splash_layer;
 
-const int ACCEL_STEP_MS = 510;
+const int ACCEL_STEP_MS = 525;
 const int STEPS_PER_CALORIE = 22;
-const int X_DELTA = 100;
-const int Y_DELTA = 80;
-const int Z_DELTA = 35;
+const int X_DELTA = 82;
+const int Y_DELTA = 137;
+const int Z_DELTA = 82;
 
 char *theme;
 bool SID;
@@ -201,7 +202,7 @@ static void timer_callback(void *data) {
 void ped_load(Window *window) {
 	steps = text_layer_create(GRect(0, 20, 150, 170));
 	pedCount = text_layer_create(GRect(0, 80, 150, 170));
-	calories = text_layer_create(GRect(0, 20, 150, 170));
+	calories = text_layer_create(GRect(0, 10, 150, 170));
 
 	if (isDark) {
 		window_set_background_color(pedometer, GColorBlack);
@@ -233,11 +234,11 @@ void ped_load(Window *window) {
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) pedCount);
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) calories);
 
+
 	text_layer_set_font(pedCount,
-			fonts_load_custom_font(resource_get_handle(RESOURCE_ID_ARLBD_30)));
+			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
 	text_layer_set_font(calories,
-			fonts_load_custom_font(
-					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
 
 	text_layer_set_text_alignment(pedCount, GTextAlignmentCenter);
 	text_layer_set_text_alignment(calories, GTextAlignmentCenter);
@@ -313,21 +314,23 @@ void info_callback(int index, void *ctx) {
 	window_stack_push(dev_info, true);
 }
 
+void changeFontToFit(){
+	if (stepGoal > 99900) {
+		text_layer_set_font(stepGoalVisualizer,
+							fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+	} else {
+		text_layer_set_font(stepGoalVisualizer,
+							fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	}
+}
+
 void inc_click_handler(ClickRecognizerRef recognizer, void *context) {
 	stepGoal += STEP_INCREMENT;
 	static char buf[] = "123456";
 	snprintf(buf, sizeof(buf), "%ld", stepGoal);
 	text_layer_set_text(stepGoalVisualizer, buf);
 
-	if (stepGoal > 99900) {
-		text_layer_set_font(stepGoalVisualizer,
-				fonts_load_custom_font(
-						resource_get_handle(RESOURCE_ID_ARLBD_25)));
-	} else {
-		text_layer_set_font(stepGoalVisualizer,
-				fonts_load_custom_font(
-						resource_get_handle(RESOURCE_ID_ARLBD_30)));
-	}
+	changeFontToFit();
 
 	if (stepGoal != 0) {
 		menu_items[1].subtitle = buf;
@@ -344,15 +347,7 @@ void dec_click_handler(ClickRecognizerRef recognizer, void *context) {
 		snprintf(buf, sizeof(buf), "%ld", stepGoal);
 		text_layer_set_text(stepGoalVisualizer, buf);
 
-		if (stepGoal > 99900) {
-			text_layer_set_font(stepGoalVisualizer,
-					fonts_load_custom_font(
-							resource_get_handle(RESOURCE_ID_ARLBD_25)));
-		} else {
-			text_layer_set_font(stepGoalVisualizer,
-					fonts_load_custom_font(
-							resource_get_handle(RESOURCE_ID_ARLBD_30)));
-		}
+		changeFontToFit();
 
 		if (stepGoal != 0) {
 			menu_items[1].subtitle = buf;
@@ -380,7 +375,7 @@ void goal_set_click_config(void *context) {
 
 void stepGoal_load(Window *window) {
 	stepGoalSetter = action_bar_layer_create();
-
+	
 	action_bar_layer_add_to_window(stepGoalSetter, set_stepGoal);
 	action_bar_layer_set_click_config_provider(stepGoalSetter,
 			goal_set_click_config);
@@ -393,26 +388,33 @@ void stepGoal_load(Window *window) {
 	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_DOWN, btn_dwn);
 	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_SELECT, btn_sel);
 
+	stepGoalText = text_layer_create(GRect(5, 5, 150, 150));
 	stepGoalVisualizer = text_layer_create(GRect(10, 50, 150, 150));
 	text_layer_set_background_color(stepGoalVisualizer, GColorClear);
 	text_layer_set_font(stepGoalVisualizer,
 			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	text_layer_set_background_color(stepGoalText, GColorClear);
+	text_layer_set_font(stepGoalText,
+			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
 	layer_add_child(window_get_root_layer(set_stepGoal),
 			(Layer*) stepGoalVisualizer);
+	layer_add_child(window_get_root_layer(set_stepGoal),
+			(Layer*) stepGoalText);
 
 	static char buf[] = "123456";
 	snprintf(buf, sizeof(buf), "%ld", stepGoal);
 	text_layer_set_text(stepGoalVisualizer, buf);
+	text_layer_set_text(stepGoalText, "Set Goal");
 
 	if (isDark) {
 		window_set_background_color(set_stepGoal, GColorBlack);
-		text_layer_set_background_color(stepGoalVisualizer, GColorClear);
 		text_layer_set_text_color(stepGoalVisualizer, GColorWhite);
+		text_layer_set_text_color(stepGoalText, GColorWhite);
 		action_bar_layer_set_background_color(stepGoalSetter, GColorWhite);
 	} else {
 		window_set_background_color(set_stepGoal, GColorWhite);
-		text_layer_set_background_color(stepGoalVisualizer, GColorClear);
 		text_layer_set_text_color(stepGoalVisualizer, GColorBlack);
+		text_layer_set_text_color(stepGoalText, GColorBlack);
 		action_bar_layer_set_background_color(stepGoalSetter, GColorBlack);
 	}
 }

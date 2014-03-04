@@ -15,58 +15,14 @@
     "resources": {
         "media": [
             {
+                "menuIcon": true,
                 "type": "png",
-                "name": "PED_WHITE",
-                "file": "images/ped_white.png"
-            },
-            {
-                "type": "png",
-                "name": "PED_BLK",
-                "file": "images/ped_blk.png"
+                "name": "ICON",
+                "file": "images/icon.png"
             },
             {
                 "type": "font",
-                "name": "ARLBD_20",
-                "file": "fonts/ARLRDBD.TTF"
-            },
-            {
-                "type": "font",
-                "name": "ARLBD_30",
-                "file": "fonts/ARLRDBD.TTF"
-            },
-            {
-                "type": "font",
-                "name": "ARLBD_25",
-                "file": "fonts/ARLRDBD.TTF"
-            },
-            {
-                "type": "png",
-                "name": "STATUS_BAR",
-                "file": "images/statusbar.png"
-            },
-            {
-                "type": "png",
-                "name": "SPLASH",
-                "file": "images/splash.png"
-            },
-            {
-                "type": "png",
-                "name": "BTN_SETUP",
-                "file": "images/setup.png"
-            },
-            {
-                "type": "png",
-                "name": "BTN_UP",
-                "file": "images/up.png"
-            },
-            {
-                "type": "png",
-                "name": "BTN_DOWN",
-                "file": "images/down.png"
-            },
-            {
-                "type": "font",
-                "name": "ROBOTO_LT_25",
+                "name": "ROBOTO_LT_15",
                 "file": "fonts/Roboto-Light.ttf"
             },
             {
@@ -76,14 +32,43 @@
             },
             {
                 "type": "font",
-                "name": "ROBOTO_LT_15",
+                "name": "ROBOTO_LT_25",
                 "file": "fonts/Roboto-Light.ttf"
             },
             {
-                "menuIcon": true,
                 "type": "png",
-                "name": "ICON",
-                "file": "images/icon.png"
+                "name": "BTN_DOWN",
+                "file": "images/down.png"
+            },
+            {
+                "type": "png",
+                "name": "BTN_UP",
+                "file": "images/up.png"
+            },
+            {
+                "type": "png",
+                "name": "BTN_SETUP",
+                "file": "images/setup.png"
+            },
+            {
+                "type": "png",
+                "name": "SPLASH",
+                "file": "images/splash.png"
+            },
+            {
+                "type": "png",
+                "name": "STATUS_BAR",
+                "file": "images/statusbar.png"
+            },
+            {
+                "type": "png",
+                "name": "PED_BLK",
+                "file": "images/ped_blk.png"
+            },
+            {
+                "type": "png",
+                "name": "PED_WHITE",
+                "file": "images/ped_white.png"
             }
         ]
     }
