@@ -9,7 +9,7 @@
 
 #define TS 1
 #define TSD 1
-	
+
 static Window *window;
 static Window *menu_window;
 static Window *set_stepGoal;
@@ -20,8 +20,8 @@ static SimpleMenuLayer *pedometer_settings;
 static SimpleMenuItem menu_items[7];
 static SimpleMenuSection menu_sections[1];
 
-char *item_names[7] = { "Start", "Step Goal", "Overall Steps", "Overall Calories", "Theme",
-		"Version", "About" };
+char *item_names[7] = { "Start", "Step Goal", "Overall Steps",
+		"Overall Calories", "Theme", "Version", "About" };
 char *item_sub[7] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
 		"Current: Error Loading", "v1.1-RELEASE", "Jathusan T." };
 
@@ -68,6 +68,327 @@ int currX, currY, currZ = 0;
 bool validX, validY, validZ = false;
 
 static long totalSteps = TSD;
+
+void start_callback(int index, void *ctx) {
+	accel_data_service_subscribe(0, NULL);
+
+	menu_items[0].title = "Continue Run";
+	menu_items[0].subtitle = "Ready for more?";
+	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
+
+	pedometer = window_create();
+
+	window_set_window_handlers(pedometer, (WindowHandlers ) { .load = ped_load,
+					.unload = ped_unload, });
+
+	window_stack_push(pedometer, true);
+	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
+}
+
+void info_callback(int index, void *ctx) {
+	dev_info = window_create();
+
+	window_set_window_handlers(dev_info, (WindowHandlers ) { .load = info_load,
+					.unload = info_unload, });
+
+	window_stack_push(dev_info, true);
+}
+
+void stepGoal_callback(int index, void *ctx) {
+	set_stepGoal = window_create();
+
+	window_set_window_handlers(set_stepGoal, (WindowHandlers ) { .load =
+					stepGoal_load, .unload = stepGoal_unload, });
+
+	window_stack_push(set_stepGoal, true);
+
+	static char buf[] = "1234567890";
+	snprintf(buf, sizeof(buf), "%ld", stepGoal);
+
+	if (stepGoal != 0) {
+		menu_items[1].subtitle = buf;
+	}
+	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
+}
+
+void theme_callback(int index, void *ctx) {
+	if (isDark) {
+		isDark = false;
+		theme = "Light";
+	} else {
+		isDark = true;
+		theme = "Dark";
+	}
+
+	char* new_string;
+	new_string = malloc(strlen(theme) + 10);
+	strcpy(new_string, "Current: ");
+	strcat(new_string, theme);
+	menu_items[4].subtitle = new_string;
+
+	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
+}
+
+void changeFontToFit() {
+	if (stepGoal > 99900) {
+		text_layer_set_font(stepGoalVisualizer,
+				fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+	} else {
+		text_layer_set_font(stepGoalVisualizer,
+				fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	}
+}
+
+void inc_click_handler(ClickRecognizerRef recognizer, void *context) {
+	stepGoal += STEP_INCREMENT;
+	static char buf[] = "123456";
+	snprintf(buf, sizeof(buf), "%ld", stepGoal);
+	text_layer_set_text(stepGoalVisualizer, buf);
+
+	changeFontToFit();
+
+	if (stepGoal != 0) {
+		menu_items[1].subtitle = buf;
+	} else {
+		menu_items[1].subtitle = "Not Set";
+	}
+	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
+}
+
+void dec_click_handler(ClickRecognizerRef recognizer, void *context) {
+	if (stepGoal >= STEP_INCREMENT) {
+		stepGoal -= STEP_INCREMENT;
+		static char buf[] = "123456";
+		snprintf(buf, sizeof(buf), "%ld", stepGoal);
+		text_layer_set_text(stepGoalVisualizer, buf);
+
+		changeFontToFit();
+
+		if (stepGoal != 0) {
+			menu_items[1].subtitle = buf;
+		} else {
+			menu_items[1].subtitle = "Not Set";
+		}
+		layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
+	}
+}
+
+void set_click_handler(ClickRecognizerRef recognizer, void *context) {
+	window_stack_pop(true);
+}
+
+void goal_set_click_config(void *context) {
+	const uint16_t rep_interval = 50;
+
+	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, rep_interval,
+			(ClickHandler) dec_click_handler);
+	window_single_repeating_click_subscribe(BUTTON_ID_UP, rep_interval,
+			(ClickHandler) inc_click_handler);
+	window_single_click_subscribe(BUTTON_ID_SELECT,
+			(ClickHandler) set_click_handler);
+}
+
+void setup_menu_items() {
+	static char buf[] = "1234567890abcdefg";
+	snprintf(buf, sizeof(buf), "%ld in Total", totalSteps);
+
+	static char buf2[] = "1234567890abcdefg";
+	snprintf(buf2, sizeof(buf2), "%ld Burned",
+			(long) (totalSteps / STEPS_PER_CALORIE));
+
+	for (int i = 0; i < (int) (sizeof(item_names) / sizeof(item_names[0]));
+			i++) {
+		menu_items[i] = (SimpleMenuItem ) { .title = item_names[i], .subtitle =
+						item_sub[i], };
+
+		//Setting Callbacks
+		if (i == 0) {
+			menu_items[i].callback = start_callback;
+		} else if (i == 1) {
+			menu_items[i].callback = stepGoal_callback;
+		} else if (i == 2) {
+			menu_items[i].subtitle = buf;
+		} else if (i == 3) {
+			menu_items[i].subtitle = buf2;
+		} else if (i == 4) {
+			menu_items[i].subtitle = theme;
+			menu_items[i].callback = theme_callback;
+		} else if (i == 5 || i == 6) {
+			menu_items[i].callback = info_callback;
+		}
+	}
+}
+
+void setup_menu_sections() {
+	menu_sections[0] = (SimpleMenuSection ) { .items = menu_items, .num_items =
+					sizeof(menu_items) / sizeof(menu_items[0]) };
+}
+
+void setup_menu_window() {
+	menu_window = window_create();
+
+	window_set_window_handlers(menu_window, (WindowHandlers ) { .load =
+					settings_load, .unload = settings_unload, });
+}
+
+void stepGoal_load(Window *window) {
+	stepGoalSetter = action_bar_layer_create();
+
+	action_bar_layer_add_to_window(stepGoalSetter, set_stepGoal);
+	action_bar_layer_set_click_config_provider(stepGoalSetter,
+			goal_set_click_config);
+
+	btn_dwn = gbitmap_create_with_resource(RESOURCE_ID_BTN_DOWN);
+	btn_up = gbitmap_create_with_resource(RESOURCE_ID_BTN_UP);
+	btn_sel = gbitmap_create_with_resource(RESOURCE_ID_BTN_SETUP);
+
+	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_UP, btn_up);
+	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_DOWN, btn_dwn);
+	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_SELECT, btn_sel);
+
+	stepGoalText = text_layer_create(GRect(5, 5, 150, 150));
+	stepGoalVisualizer = text_layer_create(GRect(10, 50, 150, 150));
+	text_layer_set_background_color(stepGoalVisualizer, GColorClear);
+	text_layer_set_font(stepGoalVisualizer,
+			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	text_layer_set_background_color(stepGoalText, GColorClear);
+	text_layer_set_font(stepGoalText,
+			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+	layer_add_child(window_get_root_layer(set_stepGoal),
+			(Layer*) stepGoalVisualizer);
+	layer_add_child(window_get_root_layer(set_stepGoal), (Layer*) stepGoalText);
+
+	static char buf[] = "123456";
+	snprintf(buf, sizeof(buf), "%ld", stepGoal);
+	text_layer_set_text(stepGoalVisualizer, buf);
+	text_layer_set_text(stepGoalText, "Set Goal");
+
+	if (isDark) {
+		window_set_background_color(set_stepGoal, GColorBlack);
+		text_layer_set_text_color(stepGoalVisualizer, GColorWhite);
+		text_layer_set_text_color(stepGoalText, GColorWhite);
+		action_bar_layer_set_background_color(stepGoalSetter, GColorWhite);
+	} else {
+		window_set_background_color(set_stepGoal, GColorWhite);
+		text_layer_set_text_color(stepGoalVisualizer, GColorBlack);
+		text_layer_set_text_color(stepGoalText, GColorBlack);
+		action_bar_layer_set_background_color(stepGoalSetter, GColorBlack);
+	}
+}
+
+void stepGoal_unload(Window *window) {
+	window_destroy(set_stepGoal);
+	action_bar_layer_destroy(stepGoalSetter);
+	gbitmap_destroy(btn_up);
+	gbitmap_destroy(btn_dwn);
+	gbitmap_destroy(btn_sel);
+	text_layer_destroy(stepGoalVisualizer);
+}
+
+void settings_load(Window *window) {
+	Layer *layer = window_get_root_layer(menu_window);
+	statusBar = gbitmap_create_with_resource(RESOURCE_ID_STATUS_BAR);
+
+	pedometer_settings = simple_menu_layer_create(layer_get_bounds(layer),
+			menu_window, menu_sections, 1, NULL);
+	simple_menu_layer_set_selected_index(pedometer_settings, 0, true);
+	layer_add_child(layer, simple_menu_layer_get_layer(pedometer_settings));
+	window_set_status_bar_icon(menu_window, statusBar);
+}
+
+void settings_unload(Window *window) {
+	layer_destroy(window_get_root_layer(menu_window));
+	simple_menu_layer_destroy(pedometer_settings);
+	window_destroy(menu_window);
+}
+
+void ped_load(Window *window) {
+	steps = text_layer_create(GRect(0, 20, 150, 170));
+	pedCount = text_layer_create(GRect(0, 80, 150, 170));
+	calories = text_layer_create(GRect(0, 10, 150, 170));
+
+	if (isDark) {
+		window_set_background_color(pedometer, GColorBlack);
+		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_WHITE);
+		text_layer_set_background_color(steps, GColorClear);
+		text_layer_set_text_color(steps, GColorBlack);
+		text_layer_set_background_color(pedCount, GColorClear);
+		text_layer_set_text_color(pedCount, GColorBlack);
+		text_layer_set_background_color(calories, GColorClear);
+		text_layer_set_text_color(calories, GColorWhite);
+	} else {
+		window_set_background_color(pedometer, GColorWhite);
+		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_BLK);
+		text_layer_set_background_color(steps, GColorClear);
+		text_layer_set_text_color(steps, GColorWhite);
+		text_layer_set_background_color(pedCount, GColorClear);
+		text_layer_set_text_color(pedCount, GColorWhite);
+		text_layer_set_background_color(calories, GColorClear);
+		text_layer_set_text_color(calories, GColorBlack);
+	}
+
+	pedometerBack_layer = bitmap_layer_create(GRect(0, 0, 145, 185));
+
+	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
+	layer_add_child(window_get_root_layer(pedometer),
+			bitmap_layer_get_layer(pedometerBack_layer));
+
+	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
+	layer_add_child(window_get_root_layer(pedometer), (Layer*) pedCount);
+	layer_add_child(window_get_root_layer(pedometer), (Layer*) calories);
+
+	text_layer_set_font(pedCount,
+			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	text_layer_set_font(calories,
+			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+
+	text_layer_set_text_alignment(pedCount, GTextAlignmentCenter);
+	text_layer_set_text_alignment(calories, GTextAlignmentCenter);
+
+	text_layer_set_text(steps, "\n\n\n                S T E P S");
+
+	static char buf[] = "1234567890";
+	snprintf(buf, sizeof(buf), "%ld", pedometerCount);
+	text_layer_set_text(pedCount, buf);
+
+	static char buf2[] = "1234567890abcdefghijkl";
+	snprintf(buf2, sizeof(buf2), "%ld Calories", caloriesBurned);
+	text_layer_set_text(calories, buf2);
+}
+
+void ped_unload(Window *window) {
+	app_timer_cancel(timer);
+	window_destroy(pedometer);
+	text_layer_destroy(pedCount);
+	text_layer_destroy(calories);
+	text_layer_destroy(steps);
+	gbitmap_destroy(pedometerBack);
+	accel_data_service_unsubscribe();
+}
+
+void info_load(Window *window) {
+	infor = text_layer_create(GRect(0, 0, 150, 150));
+
+	if (isDark) {
+		window_set_background_color(dev_info, GColorBlack);
+		text_layer_set_background_color(infor, GColorClear);
+		text_layer_set_text_color(infor, GColorWhite);
+	} else {
+		window_set_background_color(dev_info, GColorWhite);
+		text_layer_set_background_color(infor, GColorClear);
+		text_layer_set_text_color(infor, GColorBlack);
+	}
+
+	layer_add_child(window_get_root_layer(dev_info), (Layer*) infor);
+	text_layer_set_text_alignment(infor, GTextAlignmentCenter);
+	text_layer_set_text(infor,
+			"\nDeveloped By: \nJathusan Thiruchelvanathan\n\nContact:\njathusan.t@gmail.com\n\n2014");
+}
+
+void info_unload(Window *window) {
+	text_layer_destroy(infor);
+	window_destroy(dev_info);
+}
 
 void window_load(Window *window) {
 
@@ -154,18 +475,19 @@ void update_ui_callback() {
 		static char buf[] = "123456890abcdefghijkl";
 		snprintf(buf, sizeof(buf), "%ld", pedometerCount);
 		text_layer_set_text(pedCount, buf);
-		
+
 		static char buf2[] = "123456890abcdefghijkl";
 		snprintf(buf2, sizeof(buf2), "%ld in Total", tempTotal);
 		menu_items[2].subtitle = buf2;
-		
+
 		static char buf3[] = "1234567890abcdefg";
-		snprintf(buf3, sizeof(buf3), "%ld Burned", (long)(tempTotal/STEPS_PER_CALORIE));
+		snprintf(buf3, sizeof(buf3), "%ld Burned",
+				(long) (tempTotal / STEPS_PER_CALORIE));
 		menu_items[3].subtitle = buf3;
-		
+
 		layer_mark_dirty(window_get_root_layer(pedometer));
 		layer_mark_dirty(window_get_root_layer(menu_window));
-		
+
 		if (stepGoal > 0 && pedometerCount == stepGoal) {
 			vibes_long_pulse();
 			window_set_window_handlers(window, (WindowHandlers ) { .load =
@@ -197,329 +519,6 @@ static void timer_callback(void *data) {
 
 	layer_mark_dirty(window_get_root_layer(pedometer));
 	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
-}
-
-void ped_load(Window *window) {
-	steps = text_layer_create(GRect(0, 20, 150, 170));
-	pedCount = text_layer_create(GRect(0, 80, 150, 170));
-	calories = text_layer_create(GRect(0, 10, 150, 170));
-
-	if (isDark) {
-		window_set_background_color(pedometer, GColorBlack);
-		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_WHITE);
-		text_layer_set_background_color(steps, GColorClear);
-		text_layer_set_text_color(steps, GColorBlack);
-		text_layer_set_background_color(pedCount, GColorClear);
-		text_layer_set_text_color(pedCount, GColorBlack);
-		text_layer_set_background_color(calories, GColorClear);
-		text_layer_set_text_color(calories, GColorWhite);
-	} else {
-		window_set_background_color(pedometer, GColorWhite);
-		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_BLK);
-		text_layer_set_background_color(steps, GColorClear);
-		text_layer_set_text_color(steps, GColorWhite);
-		text_layer_set_background_color(pedCount, GColorClear);
-		text_layer_set_text_color(pedCount, GColorWhite);
-		text_layer_set_background_color(calories, GColorClear);
-		text_layer_set_text_color(calories, GColorBlack);
-	}
-
-	pedometerBack_layer = bitmap_layer_create(GRect(0, 0, 145, 185));
-
-	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
-	layer_add_child(window_get_root_layer(pedometer),
-			bitmap_layer_get_layer(pedometerBack_layer));
-
-	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
-	layer_add_child(window_get_root_layer(pedometer), (Layer*) pedCount);
-	layer_add_child(window_get_root_layer(pedometer), (Layer*) calories);
-
-
-	text_layer_set_font(pedCount,
-			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
-	text_layer_set_font(calories,
-			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-
-	text_layer_set_text_alignment(pedCount, GTextAlignmentCenter);
-	text_layer_set_text_alignment(calories, GTextAlignmentCenter);
-
-	text_layer_set_text(steps, "\n\n\n                S T E P S");
-
-	static char buf[] = "1234567890";
-	snprintf(buf, sizeof(buf), "%ld", pedometerCount);
-	text_layer_set_text(pedCount, buf);
-
-	static char buf2[] = "1234567890abcdefghijkl";
-	snprintf(buf2, sizeof(buf2), "%ld Calories", caloriesBurned);
-	text_layer_set_text(calories, buf2);
-}
-
-void ped_unload(Window *window) {
-	app_timer_cancel(timer);
-	window_destroy(pedometer);
-	text_layer_destroy(pedCount);
-	text_layer_destroy(calories);
-	text_layer_destroy(steps);
-	gbitmap_destroy(pedometerBack);
-	accel_data_service_unsubscribe();
-}
-
-void start_callback(int index, void *ctx) {
-	//for accelerometer data
-	accel_data_service_subscribe(0, NULL);
-	
-	menu_items[0].title = "Continue Run";
-	menu_items[0].subtitle = "Ready for more?";
-	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
-
-	pedometer = window_create();
-
-	window_set_window_handlers(pedometer, (WindowHandlers ) { .load = ped_load,
-					.unload = ped_unload, });
-
-	window_stack_push(pedometer, true);
-	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
-}
-
-void info_load(Window *window) {
-	infor = text_layer_create(GRect(0, 0, 150, 150));
-
-	if (isDark) {
-		window_set_background_color(dev_info, GColorBlack);
-		text_layer_set_background_color(infor, GColorClear);
-		text_layer_set_text_color(infor, GColorWhite);
-	} else {
-		window_set_background_color(dev_info, GColorWhite);
-		text_layer_set_background_color(infor, GColorClear);
-		text_layer_set_text_color(infor, GColorBlack);
-	}
-
-	layer_add_child(window_get_root_layer(dev_info), (Layer*) infor);
-	text_layer_set_text_alignment(infor, GTextAlignmentCenter);
-	text_layer_set_text(infor,
-			"\nDeveloped By: \nJathusan Thiruchelvanathan\n\nContact:\njathusan.t@gmail.com\n\n2014");
-}
-
-void info_unload(Window *window) {
-	text_layer_destroy(infor);
-	window_destroy(dev_info);
-}
-
-void info_callback(int index, void *ctx) {
-	dev_info = window_create();
-
-	window_set_window_handlers(dev_info, (WindowHandlers ) { .load = info_load,
-					.unload = info_unload, });
-
-	window_stack_push(dev_info, true);
-}
-
-void changeFontToFit(){
-	if (stepGoal > 99900) {
-		text_layer_set_font(stepGoalVisualizer,
-							fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-	} else {
-		text_layer_set_font(stepGoalVisualizer,
-							fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
-	}
-}
-
-void inc_click_handler(ClickRecognizerRef recognizer, void *context) {
-	stepGoal += STEP_INCREMENT;
-	static char buf[] = "123456";
-	snprintf(buf, sizeof(buf), "%ld", stepGoal);
-	text_layer_set_text(stepGoalVisualizer, buf);
-
-	changeFontToFit();
-
-	if (stepGoal != 0) {
-		menu_items[1].subtitle = buf;
-	} else {
-		menu_items[1].subtitle = "Not Set";
-	}
-	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
-}
-
-void dec_click_handler(ClickRecognizerRef recognizer, void *context) {
-	if (stepGoal >= STEP_INCREMENT) {
-		stepGoal -= STEP_INCREMENT;
-		static char buf[] = "123456";
-		snprintf(buf, sizeof(buf), "%ld", stepGoal);
-		text_layer_set_text(stepGoalVisualizer, buf);
-
-		changeFontToFit();
-
-		if (stepGoal != 0) {
-			menu_items[1].subtitle = buf;
-		} else {
-			menu_items[1].subtitle = "Not Set";
-		}
-		layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
-	}
-}
-
-void set_click_handler(ClickRecognizerRef recognizer, void *context) {
-	window_stack_pop(true);
-}
-
-void goal_set_click_config(void *context) {
-	const uint16_t rep_interval = 50;
-
-	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, rep_interval,
-			(ClickHandler) dec_click_handler);
-	window_single_repeating_click_subscribe(BUTTON_ID_UP, rep_interval,
-			(ClickHandler) inc_click_handler);
-	window_single_click_subscribe(BUTTON_ID_SELECT,
-			(ClickHandler) set_click_handler);
-}
-
-void stepGoal_load(Window *window) {
-	stepGoalSetter = action_bar_layer_create();
-	
-	action_bar_layer_add_to_window(stepGoalSetter, set_stepGoal);
-	action_bar_layer_set_click_config_provider(stepGoalSetter,
-			goal_set_click_config);
-
-	btn_dwn = gbitmap_create_with_resource(RESOURCE_ID_BTN_DOWN);
-	btn_up = gbitmap_create_with_resource(RESOURCE_ID_BTN_UP);
-	btn_sel = gbitmap_create_with_resource(RESOURCE_ID_BTN_SETUP);
-
-	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_UP, btn_up);
-	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_DOWN, btn_dwn);
-	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_SELECT, btn_sel);
-
-	stepGoalText = text_layer_create(GRect(5, 5, 150, 150));
-	stepGoalVisualizer = text_layer_create(GRect(10, 50, 150, 150));
-	text_layer_set_background_color(stepGoalVisualizer, GColorClear);
-	text_layer_set_font(stepGoalVisualizer,
-			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
-	text_layer_set_background_color(stepGoalText, GColorClear);
-	text_layer_set_font(stepGoalText,
-			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-	layer_add_child(window_get_root_layer(set_stepGoal),
-			(Layer*) stepGoalVisualizer);
-	layer_add_child(window_get_root_layer(set_stepGoal),
-			(Layer*) stepGoalText);
-
-	static char buf[] = "123456";
-	snprintf(buf, sizeof(buf), "%ld", stepGoal);
-	text_layer_set_text(stepGoalVisualizer, buf);
-	text_layer_set_text(stepGoalText, "Set Goal");
-
-	if (isDark) {
-		window_set_background_color(set_stepGoal, GColorBlack);
-		text_layer_set_text_color(stepGoalVisualizer, GColorWhite);
-		text_layer_set_text_color(stepGoalText, GColorWhite);
-		action_bar_layer_set_background_color(stepGoalSetter, GColorWhite);
-	} else {
-		window_set_background_color(set_stepGoal, GColorWhite);
-		text_layer_set_text_color(stepGoalVisualizer, GColorBlack);
-		text_layer_set_text_color(stepGoalText, GColorBlack);
-		action_bar_layer_set_background_color(stepGoalSetter, GColorBlack);
-	}
-}
-
-void stepGoal_unload(Window *window) {
-	window_destroy(set_stepGoal);
-	action_bar_layer_destroy(stepGoalSetter);
-	gbitmap_destroy(btn_up);
-	gbitmap_destroy(btn_dwn);
-	gbitmap_destroy(btn_sel);
-	text_layer_destroy(stepGoalVisualizer);
-}
-
-void stepGoal_callback(int index, void *ctx) {
-	set_stepGoal = window_create();
-
-	window_set_window_handlers(set_stepGoal, (WindowHandlers ) { .load =
-					stepGoal_load, .unload = stepGoal_unload, });
-
-	window_stack_push(set_stepGoal, true);
-
-	static char buf[] = "1234567890";
-	snprintf(buf, sizeof(buf), "%ld", stepGoal);
-
-	if (stepGoal != 0) {
-		menu_items[1].subtitle = buf;
-	}
-	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
-}
-
-void theme_callback(int index, void *ctx) {
-	if (isDark) {
-		isDark = false;
-		theme = "Light";
-	} else {
-		isDark = true;
-		theme = "Dark";
-	}
-
-	char* new_string;
-	new_string = malloc(strlen(theme) + 10);
-	strcpy(new_string, "Current: ");
-	strcat(new_string, theme);
-	menu_items[4].subtitle = new_string;
-
-	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
-}
-
-void setup_menu_items() {
-	static char buf[] = "1234567890abcdefg";
-	snprintf(buf, sizeof(buf), "%ld in Total", totalSteps);
-	
-	static char buf2[] = "1234567890abcdefg";
-	snprintf(buf2, sizeof(buf2), "%ld Burned", (long)(totalSteps/STEPS_PER_CALORIE));
-
-	for (int i = 0; i < (int) (sizeof(item_names) / sizeof(item_names[0]));
-			i++) {
-		menu_items[i] = (SimpleMenuItem ) { .title = item_names[i], .subtitle =
-						item_sub[i], };
-
-		//Setting Callbacks
-		if (i == 0) {
-			menu_items[i].callback = start_callback;
-		} else if (i == 1) {
-			menu_items[i].callback = stepGoal_callback;
-		} else if (i == 2) {
-			menu_items[i].subtitle = buf;
-		} else if (i==3){
-			menu_items[i].subtitle = buf2;
-		} else if (i == 4) {
-			menu_items[i].subtitle = theme;
-			menu_items[i].callback = theme_callback;
-		} else if (i == 5 || i == 6) {
-			menu_items[i].callback = info_callback;
-		}
-	}
-}
-
-void setup_menu_sections() {
-	menu_sections[0] = (SimpleMenuSection ) { .items = menu_items, .num_items =
-					sizeof(menu_items) / sizeof(menu_items[0]) };
-}
-
-void setup_menu_window() {
-	menu_window = window_create();
-
-	window_set_window_handlers(menu_window, (WindowHandlers ) { .load =
-					settings_load, .unload = settings_unload, });
-}
-
-void settings_load(Window *window) {
-	Layer *layer = window_get_root_layer(menu_window);
-	statusBar = gbitmap_create_with_resource(RESOURCE_ID_STATUS_BAR);
-
-	pedometer_settings = simple_menu_layer_create(layer_get_bounds(layer),
-			menu_window, menu_sections, 1, NULL);
-	simple_menu_layer_set_selected_index(pedometer_settings, 0, true);
-	layer_add_child(layer, simple_menu_layer_get_layer(pedometer_settings));
-	window_set_status_bar_icon(menu_window, statusBar);
-}
-
-void settings_unload(Window *window) {
-	layer_destroy(window_get_root_layer(menu_window));
-	simple_menu_layer_destroy(pedometer_settings);
-	window_destroy(menu_window);
 }
 
 void handle_init(void) {

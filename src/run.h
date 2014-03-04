@@ -6,7 +6,7 @@
 
 #ifndef RUN_H
 #define RUN_H
-	
+
 #include <pebble.h>
 
 void window_load(Window *window);
