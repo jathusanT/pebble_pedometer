@@ -2,7 +2,8 @@
 =============================================================
 
 ![Photo](http://i.imgur.com/GbmttlK.png)
-### What's New in Version 1.1
+### What's New in Version 1.3
+* Major improvements to step counting algorithm
 * Increased pedometer accuracy
 * Fixed UI Inconsistencies (mainly fonts)
 * View total steps and calories burned overtime
