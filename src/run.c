@@ -23,7 +23,7 @@ static SimpleMenuSection menu_sections[1];
 char *item_names[7] = { "Start", "Step Goal", "Overall Steps",
 		"Overall Calories", "Theme", "Version", "About" };
 char *item_sub[7] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
-		"Current: Error Loading", "v1.1-RELEASE", "Jathusan T." };
+		"Current: Error Loading", "v1.2-RELEASE", "Jathusan T." };
 
 ActionBarLayer *stepGoalSetter;
 
@@ -48,11 +48,14 @@ BitmapLayer *pedometerBack_layer;
 GBitmap *splash;
 BitmapLayer *splash_layer;
 
-const int ACCEL_STEP_MS = 505;
+const int ACCEL_STEP_MS = 435;
 const int STEPS_PER_CALORIE = 22;
-const int X_DELTA = 85;
-const int Y_DELTA = 140;
-const int Z_DELTA = 85;
+int X_DELTA = 33;
+int Y_DELTA = 125;
+int Z_DELTA = 125;
+int X_DELTA_TEMP = 0;
+int Y_DELTA_TEMP = 0;
+int Z_DELTA_TEMP = 0;
 
 char *theme;
 bool SID;
@@ -439,16 +442,36 @@ void window_unload(Window *window) {
 }
 
 void pedometer_update() {
-	if (currX != 0 && currY != 0 && currZ != 0) {
-		if (abs(abs(currX) - abs(lastX)) >= X_DELTA) {
+	if (startedSession) {
+		X_DELTA_TEMP = abs(abs(currX) - abs(lastX));
+		if (X_DELTA_TEMP >= X_DELTA) {
 			validX = true;
+			if (X_DELTA_TEMP - X_DELTA > 200){
+				X_DELTA = X_DELTA + 2;
+			} else if (X_DELTA - X_DELTA_TEMP > 175){
+				X_DELTA = X_DELTA - 2;
+			}
 		}
-		if (abs(abs(currY) - abs(lastY)) >= Y_DELTA) {
+		Y_DELTA_TEMP = abs(abs(currY) - abs(lastY));
+		if (Y_DELTA_TEMP >= Y_DELTA) {
 			validY = true;
+			if (Y_DELTA_TEMP - Y_DELTA > 200){
+				Y_DELTA = Y_DELTA + 2;
+			} else if (Y_DELTA - Y_DELTA_TEMP > 175){
+				Y_DELTA = Y_DELTA - 2;
+			}
 		}
+		Z_DELTA_TEMP = abs(abs(currZ) - abs(lastZ));
 		if (abs(abs(currZ) - abs(lastZ)) >= Z_DELTA) {
 			validZ = true;
+			if (Z_DELTA_TEMP - Z_DELTA > 200){
+				Z_DELTA = Z_DELTA + 2;
+			} else if (Z_DELTA - Z_DELTA_TEMP > 175){
+				Z_DELTA = Z_DELTA - 2;
+			}
 		}
+	} else {
+		startedSession = true;
 	}
 }
 
@@ -463,7 +486,7 @@ void resetUpdate() {
 
 void update_ui_callback() {
 
-	if (validX && validY && validZ) {
+	if ((validX && validY) || (validX && validZ)) {
 		pedometerCount++;
 		tempTotal++;
 
@@ -504,7 +527,6 @@ static void timer_callback(void *data) {
 	accel_service_peek(&accel);
 
 	if (!startedSession) {
-		startedSession = true;
 		lastX = accel.x;
 		lastY = accel.y;
 		lastZ = accel.z;
