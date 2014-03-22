@@ -2,8 +2,9 @@
 
 =============================================================
 
-### What's New in Version 1.3
+### What's New in Version 1.4:
 <pre>
+* Sensitivity Calibration
 * Major improvements to step counting algorithm
 * Increased pedometer accuracy
 * Fixed UI Inconsistencies (mainly fonts)
