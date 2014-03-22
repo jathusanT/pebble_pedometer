@@ -277,7 +277,7 @@ void setup_menu_items() {
 		} else if (i == 5) {
 			menu_items[i].subtitle = theme;
 			menu_items[i].callback = theme_callback;
-		} else if (i == 5 || i == 6) {
+		} else if (i == 6 || i == 7) {
 			menu_items[i].callback = info_callback;
 		}
 	}
