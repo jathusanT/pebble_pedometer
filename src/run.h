@@ -9,6 +9,7 @@
 
 #include <pebble.h>
 
+char* determineCal(int cal);
 void window_load(Window *window);
 void window_unload(Window *window);
 void pedometer_update();

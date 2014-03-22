@@ -7,7 +7,9 @@
 #include <run.h>
 #include <math.h>
 
+// Total Steps (TS)
 #define TS 1
+// Total Steps Default (TSD)
 #define TSD 1
 
 static Window *window;
@@ -17,18 +19,20 @@ static Window *pedometer;
 static Window *dev_info;
 
 static SimpleMenuLayer *pedometer_settings;
-static SimpleMenuItem menu_items[7];
+static SimpleMenuItem menu_items[8];
 static SimpleMenuSection menu_sections[1];
-
-char *item_names[7] = { "Start", "Step Goal", "Overall Steps",
-		"Overall Calories", "Theme", "Version", "About" };
-char *item_sub[7] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
-		"Current: Error Loading", "v1.2-RELEASE", "Jathusan T." };
-
 ActionBarLayer *stepGoalSetter;
 
+// Menu Item names and subtitles
+char *item_names[8] = { "Start", "Step Goal", "Overall Steps",
+		"Overall Calories", "Sensitivity", "Theme", "Version", "About" };
+char *item_sub[8] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
+		"", "", "v1.4-RELEASE", "Jathusan T." };
+
+// Timer used to determine next step check
 static AppTimer *timer;
 
+// Text Layers
 TextLayer *main_message;
 TextLayer *main_message2;
 TextLayer *hitBack;
@@ -39,6 +43,7 @@ TextLayer *infor;
 TextLayer *calories;
 TextLayer *stepGoalText;
 
+// Bitmap Layers
 static GBitmap *btn_dwn;
 static GBitmap *btn_up;
 static GBitmap *btn_sel;
@@ -48,28 +53,42 @@ BitmapLayer *pedometerBack_layer;
 GBitmap *splash;
 BitmapLayer *splash_layer;
 
-const int ACCEL_STEP_MS = 435;
+// interval to check for next step (in ms)
+const int ACCEL_STEP_MS = 475;
+// value to auto adjust step acceptance 
+const int PED_ADJUST = 2;
+// steps required per calorie
 const int STEPS_PER_CALORIE = 22;
-int X_DELTA = 33;
-int Y_DELTA = 125;
-int Z_DELTA = 125;
-int X_DELTA_TEMP = 0;
-int Y_DELTA_TEMP = 0;
-int Z_DELTA_TEMP = 0;
+// value by which step goal is incremented
+const int STEP_INCREMENT = 50;
+// values for max/min number of calibration options 
+const int MAX_CALIBRATION_SETTINGS = 3;
+const int MIN_CALIBRATION_SETTINGS = 1;
 
-char *theme;
-bool SID;
-bool isDark;
-bool startedSession = false;
+int X_DELTA = 35;
+int Y_DELTA, Z_DELTA = 185;
+int YZ_DELTA_MIN = 175;
+int YZ_DELTA_MAX = 195; 
+int X_DELTA_TEMP, Y_DELTA_TEMP, Z_DELTA_TEMP = 0;
+int lastX, lastY, lastZ, currX, currY, currZ = 0;
+int sensitivity = 1;
+
 long stepGoal = 0;
 long pedometerCount = 0;
 long caloriesBurned = 0;
-long tempTotal;
-const int STEP_INCREMENT = 50;
-int lastX, lastY, lastZ = 0;
-int currX, currY, currZ = 0;
-bool validX, validY, validZ = false;
+long tempTotal = 0;
 
+bool did_pebble_vibrate = false;
+bool validX, validY, validZ = false;
+bool SID;
+bool isDark;
+bool startedSession = false;
+
+// Strings used to display theme and calibration options
+char *theme;
+char *cal = "Regular Sensitivity";
+
+// stores total steps since app install
 static long totalSteps = TSD;
 
 void start_callback(int index, void *ctx) {
@@ -114,6 +133,20 @@ void stepGoal_callback(int index, void *ctx) {
 	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 }
 
+void calibration_callback(int index, void *ctx) {
+	
+	if (sensitivity >= MIN_CALIBRATION_SETTINGS && sensitivity < MAX_CALIBRATION_SETTINGS){
+		sensitivity++;
+	} else if (sensitivity == MAX_CALIBRATION_SETTINGS) {
+		sensitivity = MIN_CALIBRATION_SETTINGS;
+	}
+
+	cal = determineCal(sensitivity);
+	
+	menu_items[4].subtitle = cal;
+	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
+}
+
 void theme_callback(int index, void *ctx) {
 	if (isDark) {
 		isDark = false;
@@ -127,11 +160,36 @@ void theme_callback(int index, void *ctx) {
 	new_string = malloc(strlen(theme) + 10);
 	strcpy(new_string, "Current: ");
 	strcat(new_string, theme);
-	menu_items[4].subtitle = new_string;
+	menu_items[5].subtitle = new_string;
 
 	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 }
 
+char* determineCal(int cal){
+	switch(cal){
+		case 2:
+		X_DELTA = 45;
+		Y_DELTA = 235;
+		Z_DELTA = 235;
+		YZ_DELTA_MIN = 225;
+		YZ_DELTA_MAX = 245; 
+		return "Not Sensitive";
+		case 3:
+		X_DELTA = 25;
+		Y_DELTA = 110;
+		Z_DELTA = 110;
+		YZ_DELTA_MIN = 100;
+		YZ_DELTA_MAX = 120; 
+		return "Very Sensitive";
+		default:
+		X_DELTA = 35;
+		Y_DELTA = 185;
+		Z_DELTA = 185;
+		YZ_DELTA_MIN = 175;
+		YZ_DELTA_MAX = 195; 
+		return "Regular Sensitivity";
+	}
+}
 void changeFontToFit() {
 	if (stepGoal > 99900) {
 		text_layer_set_font(stepGoalVisualizer,
@@ -213,7 +271,10 @@ void setup_menu_items() {
 			menu_items[i].subtitle = buf;
 		} else if (i == 3) {
 			menu_items[i].subtitle = buf2;
-		} else if (i == 4) {
+		} else if (i ==4){
+			menu_items[i].subtitle = determineCal(sensitivity);
+			menu_items[i].callback = calibration_callback;
+		} else if (i == 5) {
 			menu_items[i].subtitle = theme;
 			menu_items[i].callback = theme_callback;
 		} else if (i == 5 || i == 6) {
@@ -441,33 +502,48 @@ void window_unload(Window *window) {
 	bitmap_layer_destroy(splash_layer);
 }
 
+void autoCorrectZ(){
+	if (Z_DELTA > YZ_DELTA_MAX){
+		Z_DELTA = YZ_DELTA_MAX; 
+	} else if (Z_DELTA < YZ_DELTA_MIN){
+		Z_DELTA = YZ_DELTA_MIN;
+	}
+}
+
+void autoCorrectY(){
+	if (Y_DELTA > YZ_DELTA_MAX){
+		Y_DELTA = YZ_DELTA_MAX; 
+	} else if (Y_DELTA < YZ_DELTA_MIN){
+		Y_DELTA = YZ_DELTA_MIN;
+	}
+}
+
 void pedometer_update() {
 	if (startedSession) {
 		X_DELTA_TEMP = abs(abs(currX) - abs(lastX));
 		if (X_DELTA_TEMP >= X_DELTA) {
 			validX = true;
-			if (X_DELTA_TEMP - X_DELTA > 200){
-				X_DELTA = X_DELTA + 2;
-			} else if (X_DELTA - X_DELTA_TEMP > 175){
-				X_DELTA = X_DELTA - 2;
-			}
 		}
 		Y_DELTA_TEMP = abs(abs(currY) - abs(lastY));
 		if (Y_DELTA_TEMP >= Y_DELTA) {
 			validY = true;
 			if (Y_DELTA_TEMP - Y_DELTA > 200){
-				Y_DELTA = Y_DELTA + 2;
+				autoCorrectY();
+				Y_DELTA = (Y_DELTA < YZ_DELTA_MAX) ? Y_DELTA + PED_ADJUST : Y_DELTA;
 			} else if (Y_DELTA - Y_DELTA_TEMP > 175){
-				Y_DELTA = Y_DELTA - 2;
+				autoCorrectY();
+				Y_DELTA = (Y_DELTA > YZ_DELTA_MIN) ? Y_DELTA - PED_ADJUST : Y_DELTA;
 			}
 		}
 		Z_DELTA_TEMP = abs(abs(currZ) - abs(lastZ));
 		if (abs(abs(currZ) - abs(lastZ)) >= Z_DELTA) {
 			validZ = true;
 			if (Z_DELTA_TEMP - Z_DELTA > 200){
-				Z_DELTA = Z_DELTA + 2;
+				autoCorrectZ();
+				Z_DELTA = (Z_DELTA < YZ_DELTA_MAX) ? Z_DELTA + PED_ADJUST : Z_DELTA;
 			} else if (Z_DELTA - Z_DELTA_TEMP > 175){
-				Z_DELTA = Z_DELTA - 2;
+				autoCorrectZ();
+				Z_DELTA = (Z_DELTA < YZ_DELTA_MAX) ? Z_DELTA + PED_ADJUST : Z_DELTA;
 			}
 		}
 	} else {
@@ -485,8 +561,7 @@ void resetUpdate() {
 }
 
 void update_ui_callback() {
-
-	if ((validX && validY) || (validX && validZ)) {
+	if ((validX && validY && !did_pebble_vibrate) || (validX && validZ && !did_pebble_vibrate)) {
 		pedometerCount++;
 		tempTotal++;
 
@@ -535,6 +610,8 @@ static void timer_callback(void *data) {
 		currY = accel.y;
 		currZ = accel.z;
 	}
+	
+	did_pebble_vibrate = accel.did_vibrate;
 
 	pedometer_update();
 	update_ui_callback();
