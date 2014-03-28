@@ -73,7 +73,7 @@ int X_DELTA_TEMP, Y_DELTA_TEMP, Z_DELTA_TEMP = 0;
 int lastX, lastY, lastZ, currX, currY, currZ = 0;
 int sensitivity = 1;
 
-long stepGoal = 5;
+long stepGoal = 0;
 long pedometerCount = 0;
 long caloriesBurned = 0;
 long tempTotal = 0;
