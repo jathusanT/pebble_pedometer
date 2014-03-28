@@ -27,7 +27,7 @@ ActionBarLayer *stepGoalSetter;
 char *item_names[8] = { "Start", "Step Goal", "Overall Steps",
 		"Overall Calories", "Sensitivity", "Theme", "Version", "About" };
 char *item_sub[8] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
-		"", "", "v1.4-RELEASE", "Jathusan T." };
+		"", "", "v1.4.1-RELEASE", "Jathusan T." };
 
 // Timer used to determine next step check
 static AppTimer *timer;
@@ -73,7 +73,7 @@ int X_DELTA_TEMP, Y_DELTA_TEMP, Z_DELTA_TEMP = 0;
 int lastX, lastY, lastZ, currX, currY, currZ = 0;
 int sensitivity = 1;
 
-long stepGoal = 0;
+long stepGoal = 5;
 long pedometerCount = 0;
 long caloriesBurned = 0;
 long tempTotal = 0;
@@ -465,7 +465,7 @@ void window_load(Window *window) {
 			bitmap_layer_get_layer(splash_layer));
 
 	main_message = text_layer_create(GRect(0, 0, 150, 170));
-	main_message2 = text_layer_create(GRect(3, 35, 150, 170));
+	main_message2 = text_layer_create(GRect(3, 30, 150, 170));
 	hitBack = text_layer_create(GRect(3, 40, 200, 170));
 
 	text_layer_set_background_color(main_message, GColorClear);
@@ -489,9 +489,9 @@ void window_load(Window *window) {
 					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
 	layer_add_child(window_get_root_layer(window), (Layer*) hitBack);
 
-	text_layer_set_text(main_message, "     GOAL");
+	text_layer_set_text(main_message, "      Goal");
 	text_layer_set_text(main_message2, "          Reached!");
-	text_layer_set_text(hitBack, "\n\n\n\n\n\n        Press Back...");
+	text_layer_set_text(hitBack, "\n\n\n\n\n\n     << Press Back");
 }
 
 void window_unload(Window *window) {
