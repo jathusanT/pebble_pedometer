@@ -16,6 +16,36 @@
         "media": [
             {
                 "type": "png",
+                "name": "FLAME_BLK",
+                "file": "images/flame2.png"
+            },
+            {
+                "type": "png",
+                "name": "FLAME_WHITE",
+                "file": "images/flame.png"
+            },
+            {
+                "type": "font",
+                "name": "BEBAS_30",
+                "file": "fonts/bebas.TTF"
+            },
+            {
+                "type": "font",
+                "name": "BEBAS_15",
+                "file": "fonts/bebas.TTF"
+            },
+            {
+                "type": "font",
+                "name": "BEBAS_40",
+                "file": "fonts/bebas.TTF"
+            },
+            {
+                "type": "font",
+                "name": "BEBAS_35",
+                "file": "fonts/bebas.TTF"
+            },
+            {
+                "type": "png",
                 "name": "PED_WHITE",
                 "file": "images/ped_white.png"
             },

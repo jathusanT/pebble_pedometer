@@ -36,7 +36,7 @@ static AppTimer *timer;
 TextLayer *main_message;
 TextLayer *main_message2;
 TextLayer *hitBack;
-TextLayer *stepGoalVisualizer;
+TextLayer *stepGoalView;
 TextLayer *steps;
 TextLayer *pedCount;
 TextLayer *infor;
@@ -52,6 +52,8 @@ GBitmap *pedometerBack;
 BitmapLayer *pedometerBack_layer;
 GBitmap *splash;
 BitmapLayer *splash_layer;
+GBitmap *flame;
+BitmapLayer *flame_layer;
 
 // interval to check for next step (in ms)
 const int ACCEL_STEP_MS = 475;
@@ -192,11 +194,9 @@ char* determineCal(int cal){
 }
 void changeFontToFit() {
 	if (stepGoal > 99900) {
-		text_layer_set_font(stepGoalVisualizer,
-				fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+		text_layer_set_font(stepGoalView, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_30)));
 	} else {
-		text_layer_set_font(stepGoalVisualizer,
-				fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+		text_layer_set_font(stepGoalView, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_35)));
 	}
 }
 
@@ -204,7 +204,7 @@ void inc_click_handler(ClickRecognizerRef recognizer, void *context) {
 	stepGoal += STEP_INCREMENT;
 	static char buf[] = "123456";
 	snprintf(buf, sizeof(buf), "%ld", stepGoal);
-	text_layer_set_text(stepGoalVisualizer, buf);
+	text_layer_set_text(stepGoalView, buf);
 
 	changeFontToFit();
 
@@ -221,7 +221,7 @@ void dec_click_handler(ClickRecognizerRef recognizer, void *context) {
 		stepGoal -= STEP_INCREMENT;
 		static char buf[] = "123456";
 		snprintf(buf, sizeof(buf), "%ld", stepGoal);
-		text_layer_set_text(stepGoalVisualizer, buf);
+		text_layer_set_text(stepGoalView, buf);
 
 		changeFontToFit();
 
@@ -310,31 +310,33 @@ void stepGoal_load(Window *window) {
 	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_DOWN, btn_dwn);
 	action_bar_layer_set_icon(stepGoalSetter, BUTTON_ID_SELECT, btn_sel);
 
-	stepGoalText = text_layer_create(GRect(5, 5, 150, 150));
-	stepGoalVisualizer = text_layer_create(GRect(10, 50, 150, 150));
-	text_layer_set_background_color(stepGoalVisualizer, GColorClear);
-	text_layer_set_font(stepGoalVisualizer,
-			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	stepGoalText = text_layer_create(GRect(5, 10, 150, 150));
+	stepGoalView = text_layer_create(GRect(10, 60, 150, 150));
+	
+	text_layer_set_background_color(stepGoalView, GColorClear);
 	text_layer_set_background_color(stepGoalText, GColorClear);
+	
+	text_layer_set_font(stepGoalView, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_35)));
 	text_layer_set_font(stepGoalText,
 			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+	
 	layer_add_child(window_get_root_layer(set_stepGoal),
-			(Layer*) stepGoalVisualizer);
+			(Layer*) stepGoalView);
 	layer_add_child(window_get_root_layer(set_stepGoal), (Layer*) stepGoalText);
 
 	static char buf[] = "123456";
 	snprintf(buf, sizeof(buf), "%ld", stepGoal);
-	text_layer_set_text(stepGoalVisualizer, buf);
-	text_layer_set_text(stepGoalText, "Set Goal");
+	text_layer_set_text(stepGoalView, buf);
+	text_layer_set_text(stepGoalText, "Current Goal:");
 
 	if (isDark) {
 		window_set_background_color(set_stepGoal, GColorBlack);
-		text_layer_set_text_color(stepGoalVisualizer, GColorWhite);
+		text_layer_set_text_color(stepGoalView, GColorWhite);
 		text_layer_set_text_color(stepGoalText, GColorWhite);
 		action_bar_layer_set_background_color(stepGoalSetter, GColorWhite);
 	} else {
 		window_set_background_color(set_stepGoal, GColorWhite);
-		text_layer_set_text_color(stepGoalVisualizer, GColorBlack);
+		text_layer_set_text_color(stepGoalView, GColorBlack);
 		text_layer_set_text_color(stepGoalText, GColorBlack);
 		action_bar_layer_set_background_color(stepGoalSetter, GColorBlack);
 	}
@@ -346,7 +348,7 @@ void stepGoal_unload(Window *window) {
 	gbitmap_destroy(btn_up);
 	gbitmap_destroy(btn_dwn);
 	gbitmap_destroy(btn_sel);
-	text_layer_destroy(stepGoalVisualizer);
+	text_layer_destroy(stepGoalView);
 }
 
 void settings_load(Window *window) {
@@ -367,13 +369,14 @@ void settings_unload(Window *window) {
 }
 
 void ped_load(Window *window) {
-	steps = text_layer_create(GRect(0, 20, 150, 170));
-	pedCount = text_layer_create(GRect(0, 80, 150, 170));
-	calories = text_layer_create(GRect(0, 10, 150, 170));
+	steps = text_layer_create(GRect(0, 120, 150, 170));
+	pedCount = text_layer_create(GRect(0, 75, 150, 170));
+	calories = text_layer_create(GRect(0, 50, 150, 170));
 
 	if (isDark) {
 		window_set_background_color(pedometer, GColorBlack);
 		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_WHITE);
+		flame = gbitmap_create_with_resource(RESOURCE_ID_FLAME_WHITE);
 		text_layer_set_background_color(steps, GColorClear);
 		text_layer_set_text_color(steps, GColorBlack);
 		text_layer_set_background_color(pedCount, GColorClear);
@@ -383,6 +386,7 @@ void ped_load(Window *window) {
 	} else {
 		window_set_background_color(pedometer, GColorWhite);
 		pedometerBack = gbitmap_create_with_resource(RESOURCE_ID_PED_BLK);
+		flame = gbitmap_create_with_resource(RESOURCE_ID_FLAME_BLK);
 		text_layer_set_background_color(steps, GColorClear);
 		text_layer_set_text_color(steps, GColorWhite);
 		text_layer_set_background_color(pedCount, GColorClear);
@@ -391,25 +395,31 @@ void ped_load(Window *window) {
 		text_layer_set_text_color(calories, GColorBlack);
 	}
 
-	pedometerBack_layer = bitmap_layer_create(GRect(0, 0, 145, 185));
+	pedometerBack_layer = bitmap_layer_create(GRect(0, 0, 145, 215));
+	flame_layer = bitmap_layer_create(GRect(50, 0, 50, 50));
 
 	bitmap_layer_set_bitmap(pedometerBack_layer, pedometerBack);
+	bitmap_layer_set_bitmap(flame_layer, flame);
+	
 	layer_add_child(window_get_root_layer(pedometer),
 			bitmap_layer_get_layer(pedometerBack_layer));
+	
+	layer_add_child(window_get_root_layer(pedometer),
+			bitmap_layer_get_layer(flame_layer));
 
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) steps);
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) pedCount);
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) calories);
 
-	text_layer_set_font(pedCount,
-			fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
-	text_layer_set_font(calories,
-			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-
+	text_layer_set_font(pedCount, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_40)));
+	text_layer_set_font(calories, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_15)));
+	text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_15)));
+	
+	text_layer_set_text_alignment(steps, GTextAlignmentCenter);
 	text_layer_set_text_alignment(pedCount, GTextAlignmentCenter);
 	text_layer_set_text_alignment(calories, GTextAlignmentCenter);
 
-	text_layer_set_text(steps, "\n\n\n                S T E P S");
+	text_layer_set_text(steps, "s t e p s");
 
 	static char buf[] = "1234567890";
 	snprintf(buf, sizeof(buf), "%ld", pedometerCount);
