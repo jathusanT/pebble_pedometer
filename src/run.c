@@ -27,7 +27,7 @@ ActionBarLayer *stepGoalSetter;
 char *item_names[8] = { "Start", "Step Goal", "Overall Steps",
 		"Overall Calories", "Sensitivity", "Theme", "Version", "About" };
 char *item_sub[8] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
-		"", "", "v1.4.1-RELEASE", "Jathusan T." };
+		"", "", "v1.5-RELEASE", "Jathusan T." };
 
 // Timer used to determine next step check
 static AppTimer *timer;
