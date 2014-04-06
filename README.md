@@ -2,15 +2,12 @@
 
 =============================================================
 
-### What's New in Version 1.4:
+### What's New in Version 1.5:
 <pre>
+* New User Interface
 * Sensitivity Calibration
 * Major improvements to step counting algorithm
 * Increased pedometer accuracy
-* Fixed UI Inconsistencies (mainly fonts)
-* View total steps and calories burned overtime
-* Set and be notified when you reach your daily step goal
-* Switch between two themes
 </pre>
 
 <a href="http://pblweb.com/appstore/5313c2f943d9606d1d0000ef" title="Pedometer on the Pebble appstore">
