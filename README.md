@@ -10,7 +10,7 @@
 * Increased pedometer accuracy
 </pre>
 
-<a href="http://pblweb.com/appstore/5313c2f943d9606d1d0000ef" title="Pedometer on the Pebble appstore">
+<a href="https://apps.getpebble.com/applications/5313c2f943d9606d1d0000ef" title="Pedometer on the Pebble appstore">
   <img src="http://pblweb.com/badge/5313c2f943d9606d1d0000ef/orange/medium" />
 </a>
 
