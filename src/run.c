@@ -93,8 +93,16 @@ char *cal = "Regular Sensitivity";
 // stores total steps since app install
 static long totalSteps = TSD;
 
+/*Sean MA: added start*/
+static void handle_accel(AccelData *accel_data, uint32_t num_samples) {
+  // nothing
+}
+/*Sean MA: end*/
+
+
 void start_callback(int index, void *ctx) {
-	accel_data_service_subscribe(0, NULL);
+	accel_data_service_subscribe(0, handle_accel);//added by Sean MA
+  	//accel_data_service_subscribe(0, NULL);//commented by Sean MA
 
 	menu_items[0].title = "Continue Run";
 	menu_items[0].subtitle = "Ready for more?";
@@ -365,7 +373,7 @@ void settings_load(Window *window) {
 void settings_unload(Window *window) {
 	layer_destroy(window_get_root_layer(menu_window));
 	simple_menu_layer_destroy(pedometer_settings);
-	window_destroy(menu_window);
+	//window_destroy(menu_window);
 }
 
 void ped_load(Window *window) {
@@ -630,6 +638,8 @@ static void timer_callback(void *data) {
 	timer = app_timer_register(ACCEL_STEP_MS, timer_callback, NULL);
 }
 
+
+
 void handle_init(void) {
 	tempTotal = totalSteps = persist_exists(TS) ? persist_read_int(TS) : TSD;
 	isDark = persist_exists(SID) ? persist_read_bool(SID) : true;
@@ -641,7 +651,7 @@ void handle_init(void) {
 	}
 
 	window = window_create();
-
+	
 	setup_menu_items();
 	setup_menu_sections();
 	setup_menu_window();
@@ -654,5 +664,5 @@ void handle_deinit(void) {
 	persist_write_int(TS, totalSteps);
 	persist_write_bool(SID, isDark);
 	accel_data_service_unsubscribe();
-	window_destroy(menu_window);
+	window_destroy(window);//changed by Sean MA
 }
