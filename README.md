@@ -4,7 +4,8 @@
 ### What's New in Version 1.51-Unofficial:
 <pre>
 * Solve the app crash issue when quit
-* Fix some bug which make the app cannot step count on some pebble (at least on my pebble).
+* Fix some bug which make the app cannot step count on some pebble (at least on my pebble)
+* Add Chinese version
 </pre>
 
 ### What's New in Version 1.5:
