@@ -1,6 +1,7 @@
 /*
  * pebble pedometer
  * @author jathusant
+ * revised Sean MA ma.xiaoyuan.mail@gmail.com
  */
 
 #include <pebble.h>
@@ -27,7 +28,7 @@ ActionBarLayer *stepGoalSetter;
 char *item_names[8] = { "Start", "Step Goal", "Overall Steps",
 		"Overall Calories", "Sensitivity", "Theme", "Version", "About" };
 char *item_sub[8] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
-		"", "", "v1.5-RELEASE", "Jathusan T." };
+		"", "", "v1.51-Unofficial", "Jathusan T.\n Sean MA" };
 
 // Timer used to determine next step check
 static AppTimer *timer;
@@ -42,6 +43,8 @@ TextLayer *pedCount;
 TextLayer *infor;
 TextLayer *calories;
 TextLayer *stepGoalText;
+
+ScrollLayer *infor_scroll;
 
 // Bitmap Layers
 static GBitmap *btn_dwn;
@@ -449,26 +452,40 @@ void ped_unload(Window *window) {
 }
 
 void info_load(Window *window) {
-	infor = text_layer_create(GRect(0, 0, 150, 150));
+//  show_about();
+  GRect bounds = layer_get_frame(window_get_root_layer(dev_info));
+  GRect max_text_bounds = GRect(0, 0, bounds.size.w, 2000);
+  
+  infor_scroll = scroll_layer_create(bounds);
+  scroll_layer_set_click_config_onto_window(infor_scroll, window);
+  infor = text_layer_create(max_text_bounds);
+  layer_add_child(window_get_root_layer(dev_info), scroll_layer_get_layer(infor_scroll));
+ 	text_layer_set_text_alignment(infor, GTextAlignmentCenter);
+  text_layer_set_text(infor,
+ 			"\nDeveloped By: \nJathusan Thiruchelvanathan\n\nContact:\njathusan.t@gmail.com\n\nRevised By: \n Sean MA\n\nContact:\nma.xiaoyuan.mail@gmail.com\n\n2015");
+    
+  GSize max_size_infor = text_layer_get_content_size(infor);
+  text_layer_set_size(infor, max_size_infor);
+  scroll_layer_set_content_size(infor_scroll, GSize(bounds.size.w, max_size_infor.h + 4));
 
-	if (isDark) {
-		window_set_background_color(dev_info, GColorBlack);
-		text_layer_set_background_color(infor, GColorClear);
-		text_layer_set_text_color(infor, GColorWhite);
-	} else {
-		window_set_background_color(dev_info, GColorWhite);
-		text_layer_set_background_color(infor, GColorClear);
-		text_layer_set_text_color(infor, GColorBlack);
-	}
-
-	layer_add_child(window_get_root_layer(dev_info), (Layer*) infor);
-	text_layer_set_text_alignment(infor, GTextAlignmentCenter);
-	text_layer_set_text(infor,
-			"\nDeveloped By: \nJathusan Thiruchelvanathan\n\nContact:\njathusan.t@gmail.com\n\n2014");
+  // Add the layers for display
+  scroll_layer_add_child(infor_scroll, text_layer_get_layer(infor));
+  
+ 	if (isDark) {
+ 		window_set_background_color(dev_info, GColorBlack);
+    text_layer_set_background_color(infor, GColorClear);
+ 		text_layer_set_text_color(infor, GColorWhite);
+ 	} else {
+ 		window_set_background_color(dev_info, GColorWhite);
+ 		text_layer_set_background_color(infor, GColorClear);
+ 		text_layer_set_text_color(infor, GColorBlack);
+ 	}
 }
 
 void info_unload(Window *window) {
+  //hide_about();
 	text_layer_destroy(infor);
+  scroll_layer_destroy(infor_scroll);
 	window_destroy(dev_info);
 }
 
