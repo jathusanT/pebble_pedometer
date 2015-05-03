@@ -8,6 +8,58 @@
 #include <run.h>
 #include <math.h>
 
+  
+/*international translation*/
+// English
+char *item_names_en[8] = {"Start", "Step Goal", "Overall Steps", "Overall Calories", "Sensitivity", "Theme", "Version", "About"};
+char *item_sub_en[8] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned", "", "", "v1.51-Unofficial", "Jathusan T.\n Sean MA" };
+char *string_continue_run_en = "Continue Run";
+char *string_ready_for_more_en = "Ready for more?";
+char *string_current_light_en = "Current: Light";
+char *string_current_dark_en = "Current: Dark";
+char *string_goal_en = "      Goal";
+char *string_reach_en = "          Reached!";
+char *string_press_back_en = "\n\n\n\n\n     << Press Back";
+char *string_current_goal_en = "Current Goal:";
+char *string_regular_sensitivity_en = "Regular Sensitivity";
+char *string_not_sensitive_en = "Not Sensitive";
+char *string_very_sensitive_en = "Very Sensitive";
+char *string_not_set_en = "Not Set";
+char *string_current_en = "Current: ";
+char *string_dark_en = "Dark";
+char *string_light_en = "Light";
+char *string_total_pre_en = "";
+char *string_total_after_en = " in Total";
+char *string_burned_pre_en = "";
+char *string_burned_after_en = " Burned";
+char *string_calories_en = " Calories";
+char *string_steps_en = "s t e p s";
+// Chinese
+char *item_names_ch[8] = {"开始", "计步目标", "计步总数", "卡路里总量", "灵敏度", "主题", "版本", "关于"};
+char *item_sub_ch[8] = {"开始锻炼！", "未设置", "共 0 步", "已燃烧 0", "", "", "v1.51-Unofficial", "Jathusan T. Sean MA"};
+char *string_continue_run_ch = "继续";
+char *string_ready_for_more_ch = "再锻炼会？";
+char *string_current_light_ch = "当前：白";
+char *string_current_dark_ch = "当前：黑";
+char *string_goal_ch = "      Goal";;
+char *string_reach_ch = "          Reached!";
+char *string_press_back_ch = "\n\n\n\n\n     << 按键返回";
+char *string_current_goal_ch = "当前目标：";
+char *string_regular_sensitivity_ch = "常规";
+char *string_not_sensitive_ch = "不灵敏";
+char *string_very_sensitive_ch = "灵敏";
+char *string_not_set_ch = "未设置";
+char *string_current_ch = "当前：";
+char *string_dark_ch = "黑";
+char *string_light_ch = "白";
+char *string_total_pre_ch = "共 ";
+char *string_total_after_ch = " 步";
+char *string_burned_pre_ch = "已燃烧 ";
+char *string_burned_after_ch = "卡";
+char *string_calories_ch = " 卡路里";
+char *string_steps_ch = " 步";
+/*international translation end*/
+
 // Total Steps (TS)
 #define TS 1
 // Total Steps Default (TSD)
@@ -18,17 +70,15 @@ static Window *menu_window;
 static Window *set_stepGoal;
 static Window *pedometer;
 static Window *dev_info;
+static Window *first_window;
 
 static SimpleMenuLayer *pedometer_settings;
 static SimpleMenuItem menu_items[8];
 static SimpleMenuSection menu_sections[1];
 ActionBarLayer *stepGoalSetter;
 
-// Menu Item names and subtitles
-char *item_names[8] = { "Start", "Step Goal", "Overall Steps",
-		"Overall Calories", "Sensitivity", "Theme", "Version", "About" };
-char *item_sub[8] = { "Lets Exercise!", "Not Set", "0 in Total", "0 Burned",
-		"", "", "v1.51-Unofficial", "Jathusan T.\n Sean MA" };
+char *item_names[8];
+char *item_sub[8];
 
 // Timer used to determine next step check
 static AppTimer *timer;
@@ -91,12 +141,95 @@ bool startedSession = false;
 
 // Strings used to display theme and calibration options
 char *theme;
-char *cal = "Regular Sensitivity";
+char *cal;
 
 // stores total steps since app install
 static long totalSteps = TSD;
 
 /*Sean MA: added start*/
+char *string_continue_run;
+char *string_ready_for_more;
+char *string_current_light;
+char *string_current_dark;
+char *string_goal;
+char *string_reach;
+char *string_press_back;
+char *string_current_goal;
+char *string_regular_sensitivity;
+char *string_not_sensitive;
+char *string_very_sensitive;
+char *string_not_set;
+char *string_current;
+char *string_dark;
+char *string_light;
+char *string_total_pre;
+char *string_total_after;
+char *string_burned_pre;
+char *string_burned_after;
+char *string_calories;
+char *string_steps;
+
+static void international_translation() {
+   unsigned char cnt_tmp;
+  char *sys_locale = setlocale(LC_ALL, "");
+  
+   if (strcmp("zh_CN", sys_locale) == 0) {
+     //Chinese
+     for(cnt_tmp = 0; cnt_tmp < 8; cnt_tmp++) {
+       item_names[cnt_tmp] = item_names_ch[cnt_tmp];
+       item_sub[cnt_tmp] = item_sub_ch[cnt_tmp];
+     }
+     string_current_light = string_current_light_ch;
+     string_current_dark = string_current_dark_ch;
+     string_continue_run = string_continue_run_ch;
+     string_ready_for_more = string_ready_for_more_ch;
+     string_goal = string_goal_ch;
+     string_reach = string_reach_ch;
+     string_current_goal = string_current_goal_ch;
+     string_press_back = string_press_back_ch;
+     string_regular_sensitivity = string_regular_sensitivity_ch;
+     string_not_sensitive = string_not_sensitive_ch;
+     string_very_sensitive = string_very_sensitive_ch;
+     string_not_set = string_not_set_ch;
+     string_current = string_current_ch;
+     string_dark = string_dark_ch;
+     string_light = string_light_ch;
+     string_total_pre = string_total_pre_ch;
+     string_total_after = string_total_after_ch;
+     string_burned_pre = string_burned_pre_ch;
+     string_burned_after = string_burned_after_ch;
+     string_calories = string_calories_ch;
+     string_steps = string_steps_ch;
+   } else {
+     // Fall back to English
+     for(cnt_tmp = 0; cnt_tmp < 8; cnt_tmp++) {
+       item_names[cnt_tmp] = item_names_en[cnt_tmp];
+       item_sub[cnt_tmp] = item_sub_en[cnt_tmp];
+     }   
+     string_current_light = string_current_light_en;
+     string_current_dark = string_current_dark_en;
+     string_continue_run = string_continue_run_en;
+     string_ready_for_more = string_ready_for_more_en;
+     string_goal = string_goal_en;
+     string_reach = string_reach_en;
+     string_current_goal = string_current_goal_en;
+     string_press_back = string_press_back_en;
+     string_regular_sensitivity = string_regular_sensitivity_en;
+     string_not_sensitive = string_not_sensitive_en;
+     string_very_sensitive = string_very_sensitive_en;
+     string_not_set = string_not_set_en;
+     string_current = string_current_en;
+     string_dark = string_dark_en;
+     string_light = string_light_en;
+     string_total_pre = string_total_pre_en;
+     string_total_after = string_total_after_en;
+     string_burned_pre = string_burned_pre_en;
+     string_burned_after = string_burned_after_en;
+     string_calories = string_calories_en;
+     string_steps = string_steps_en;
+   }
+}
+
 static void handle_accel(AccelData *accel_data, uint32_t num_samples) {
   // nothing
 }
@@ -107,8 +240,8 @@ void start_callback(int index, void *ctx) {
 	accel_data_service_subscribe(0, handle_accel);//added by Sean MA
   	//accel_data_service_subscribe(0, NULL);//commented by Sean MA
 
-	menu_items[0].title = "Continue Run";
-	menu_items[0].subtitle = "Ready for more?";
+	menu_items[0].title = string_continue_run;
+	menu_items[0].subtitle = string_ready_for_more;
 	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 
 	pedometer = window_create();
@@ -163,15 +296,15 @@ void calibration_callback(int index, void *ctx) {
 void theme_callback(int index, void *ctx) {
 	if (isDark) {
 		isDark = false;
-		theme = "Light";
+		theme = string_light;
 	} else {
 		isDark = true;
-		theme = "Dark";
+		theme = string_dark;
 	}
 
 	char* new_string;
 	new_string = malloc(strlen(theme) + 10);
-	strcpy(new_string, "Current: ");
+	strcpy(new_string, string_current);
 	strcat(new_string, theme);
 	menu_items[5].subtitle = new_string;
 
@@ -186,21 +319,21 @@ char* determineCal(int cal){
 		Z_DELTA = 235;
 		YZ_DELTA_MIN = 225;
 		YZ_DELTA_MAX = 245; 
-		return "Not Sensitive";
+		return string_not_sensitive;
 		case 3:
 		X_DELTA = 25;
 		Y_DELTA = 110;
 		Z_DELTA = 110;
 		YZ_DELTA_MIN = 100;
 		YZ_DELTA_MAX = 120; 
-		return "Very Sensitive";
+		return string_very_sensitive;
 		default:
 		X_DELTA = 35;
 		Y_DELTA = 185;
 		Z_DELTA = 185;
 		YZ_DELTA_MIN = 175;
 		YZ_DELTA_MAX = 195; 
-		return "Regular Sensitivity";
+		return string_regular_sensitivity;
 	}
 }
 void changeFontToFit() {
@@ -222,7 +355,7 @@ void inc_click_handler(ClickRecognizerRef recognizer, void *context) {
 	if (stepGoal != 0) {
 		menu_items[1].subtitle = buf;
 	} else {
-		menu_items[1].subtitle = "Not Set";
+		menu_items[1].subtitle = string_not_set;
 	}
 	layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 }
@@ -239,7 +372,7 @@ void dec_click_handler(ClickRecognizerRef recognizer, void *context) {
 		if (stepGoal != 0) {
 			menu_items[1].subtitle = buf;
 		} else {
-			menu_items[1].subtitle = "Not Set";
+			menu_items[1].subtitle = string_not_set;
 		}
 		layer_mark_dirty(simple_menu_layer_get_layer(pedometer_settings));
 	}
@@ -262,11 +395,15 @@ void goal_set_click_config(void *context) {
 
 void setup_menu_items() {
 	static char buf[] = "1234567890abcdefg";
-	snprintf(buf, sizeof(buf), "%ld in Total", totalSteps);
+  
+  strcpy(buf, string_total_pre);
+	snprintf(buf + strlen(string_total_pre), sizeof(buf), "%ld", totalSteps);
+  strcat(buf, string_total_after);
 
 	static char buf2[] = "1234567890abcdefg";
-	snprintf(buf2, sizeof(buf2), "%ld Burned",
-			(long) (totalSteps / STEPS_PER_CALORIE));
+  strcpy(buf2, string_burned_pre);
+	snprintf(buf2 + strlen(string_burned_pre), sizeof(buf2), "%ld", (long) (totalSteps / STEPS_PER_CALORIE));
+  strcat(buf2, string_burned_after);
 
 	for (int i = 0; i < (int) (sizeof(item_names) / sizeof(item_names[0]));
 			i++) {
@@ -338,7 +475,7 @@ void stepGoal_load(Window *window) {
 	static char buf[] = "123456";
 	snprintf(buf, sizeof(buf), "%ld", stepGoal);
 	text_layer_set_text(stepGoalView, buf);
-	text_layer_set_text(stepGoalText, "Current Goal:");
+	text_layer_set_text(stepGoalText, string_current_goal);
 
 	if (isDark) {
 		window_set_background_color(set_stepGoal, GColorBlack);
@@ -423,21 +560,22 @@ void ped_load(Window *window) {
 	layer_add_child(window_get_root_layer(pedometer), (Layer*) calories);
 
 	text_layer_set_font(pedCount, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_40)));
-	text_layer_set_font(calories, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_15)));
-	text_layer_set_font(steps, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_15)));
+	text_layer_set_font(calories, /*fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_15))*/fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	text_layer_set_font(steps, /*fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_15))*/fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
 	
 	text_layer_set_text_alignment(steps, GTextAlignmentCenter);
 	text_layer_set_text_alignment(pedCount, GTextAlignmentCenter);
 	text_layer_set_text_alignment(calories, GTextAlignmentCenter);
 
-	text_layer_set_text(steps, "s t e p s");
+	text_layer_set_text(steps, string_steps);
 
 	static char buf[] = "1234567890";
 	snprintf(buf, sizeof(buf), "%ld", pedometerCount);
 	text_layer_set_text(pedCount, buf);
 
 	static char buf2[] = "1234567890abcdefghijkl";
-	snprintf(buf2, sizeof(buf2), "%ld Calories", caloriesBurned);
+  snprintf(buf2, sizeof(buf2), "%ld", caloriesBurned);
+  strcat(buf2, string_calories);
 	text_layer_set_text(calories, buf2);
 }
 
@@ -461,8 +599,7 @@ void info_load(Window *window) {
   infor = text_layer_create(max_text_bounds);
   layer_add_child(window_get_root_layer(dev_info), scroll_layer_get_layer(infor_scroll));
  	text_layer_set_text_alignment(infor, GTextAlignmentCenter);
-  text_layer_set_text(infor,
- 			"\nDeveloped By: \nJathusan Thiruchelvanathan\n\nContact:\njathusan.t@gmail.com\n\nRevised By: \n Sean MA\n\nContact:\nma.xiaoyuan.mail@gmail.com\n\n2015");
+  text_layer_set_text(infor, "\nDeveloped By: \nJathusan Thiruchelvanathan\n\nContact:\njathusan.t@gmail.com\n\nContributor: \n Sean MA\n\nContact:\nma.xiaoyuan.mail@gmail.com\n\n2015");
     
   GSize max_size_infor = text_layer_get_content_size(infor);
   text_layer_set_size(infor, max_size_infor);
@@ -520,13 +657,13 @@ void window_load(Window *window) {
 	text_layer_set_background_color(hitBack, GColorClear);
 	text_layer_set_text_color(hitBack, GColorWhite);
 	text_layer_set_font(hitBack,
-			fonts_load_custom_font(
-					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15)));
+			/*fonts_load_custom_font(
+					resource_get_handle(RESOURCE_ID_ROBOTO_LT_15))*/fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
 	layer_add_child(window_get_root_layer(window), (Layer*) hitBack);
 
-	text_layer_set_text(main_message, "      Goal");
-	text_layer_set_text(main_message2, "          Reached!");
-	text_layer_set_text(hitBack, "\n\n\n\n\n\n     << Press Back");
+	text_layer_set_text(main_message, string_goal);
+	text_layer_set_text(main_message2, string_reach);
+	text_layer_set_text(hitBack, string_press_back);
 }
 
 void window_unload(Window *window) {
@@ -602,21 +739,25 @@ void update_ui_callback() {
 
 		caloriesBurned = (int) (pedometerCount / STEPS_PER_CALORIE);
 		static char calBuf[] = "123456890abcdefghijkl";
-		snprintf(calBuf, sizeof(calBuf), "%ld Calories", caloriesBurned);
-		text_layer_set_text(calories, calBuf);
+    snprintf(calBuf, sizeof(calBuf), "%ld", caloriesBurned);
+    strcat(calBuf, string_calories);
+	  text_layer_set_text(calories, calBuf);
 
 		static char buf[] = "123456890abcdefghijkl";
 		snprintf(buf, sizeof(buf), "%ld", pedometerCount);
 		text_layer_set_text(pedCount, buf);
 
-		static char buf2[] = "123456890abcdefghijkl";
-		snprintf(buf2, sizeof(buf2), "%ld in Total", tempTotal);
+    static char buf2[] = "123456890abcdefghijkl";
+    strcpy(buf2, string_total_pre);
+	  snprintf(buf2 + strlen(string_total_pre), sizeof(buf), "%ld", tempTotal);
+    strcat(buf2, string_total_after);
 		menu_items[2].subtitle = buf2;
-
-		static char buf3[] = "1234567890abcdefg";
-		snprintf(buf3, sizeof(buf3), "%ld Burned",
-				(long) (tempTotal / STEPS_PER_CALORIE));
-		menu_items[3].subtitle = buf3;
+    
+    static char buf3[] = "1234567890abcdefg";
+    strcpy(buf3, string_burned_pre);
+	  snprintf(buf3 + strlen(string_burned_pre), sizeof(buf2), "%ld", (long) (tempTotal / STEPS_PER_CALORIE));
+    strcat(buf3, string_burned_after);
+		menu_items[3].subtitle = buf3;	
 
 		layer_mark_dirty(window_get_root_layer(pedometer));
 		layer_mark_dirty(window_get_root_layer(menu_window));
@@ -658,16 +799,21 @@ static void timer_callback(void *data) {
 
 
 void handle_init(void) {
+  international_translation();
+  
+  cal = string_regular_sensitivity;
+  
 	tempTotal = totalSteps = persist_exists(TS) ? persist_read_int(TS) : TSD;
 	isDark = persist_exists(SID) ? persist_read_bool(SID) : true;
-
+    
 	if (!isDark) {
-		theme = "Current: Light";
+		theme = string_current_light;
 	} else {
-		theme = "Current: Dark";
+		theme = string_current_dark;
 	}
-
-	window = window_create();
+  
+	first_window = window_create();
+  window = window_create();
 	
 	setup_menu_items();
 	setup_menu_sections();
@@ -681,5 +827,5 @@ void handle_deinit(void) {
 	persist_write_int(TS, totalSteps);
 	persist_write_bool(SID, isDark);
 	accel_data_service_unsubscribe();
-	window_destroy(window);//changed by Sean MA
+	window_destroy(first_window);//changed by Sean MA
 }
